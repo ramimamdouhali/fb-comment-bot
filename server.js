@@ -4,8 +4,8 @@ const { MongoClient } = require('mongodb');
 
 // ---------- Environment Variables ----------
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
-const MASTER_PASSWORD = process.env.MASTER_PW;       // Only you know this
-const MONGODB_URI = process.env.MONGODB_URI;         // Your MongoDB Atlas connection string
+const MASTER_PASSWORD = process.env.MASTER_PW;
+const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!VERIFY_TOKEN || !MASTER_PASSWORD || !MONGODB_URI) {
     console.error("Missing required env vars: VERIFY_TOKEN, MASTER_PW, MONGODB_URI");
@@ -17,12 +17,11 @@ let db;
 async function connectDB() {
     const client = new MongoClient(MONGODB_URI);
     await client.connect();
-    db = client.db(); // default database from connection string
+    db = client.db();
     console.log("Connected to MongoDB");
 }
 connectDB().catch(err => { console.error("DB connection failed:", err); process.exit(1); });
 
-// Helper to get a page's config from environment (tokens and admin passwords)
 function getPageConfig(pageId) {
     const token = process.env[`PAGE_TOKEN_${pageId}`];
     const password = process.env[`ADMIN_PW_${pageId}`];
@@ -107,7 +106,7 @@ function sendPrivateReply(commentId, text, accessToken) {
     req.end();
 }
 
-// ---------- HTTP Basic Auth for admin panels ----------
+// ---------- HTTP Basic Auth ----------
 function checkAuth(req, expectedPassword) {
     const authHeader = req.headers.authorization;
     if (!authHeader) return false;
@@ -118,7 +117,7 @@ function checkAuth(req, expectedPassword) {
     return password === expectedPassword;
 }
 
-// ---------- MongoDB operations for prices and subscription ----------
+// ---------- MongoDB operations ----------
 async function getPageData(pageId) {
     if (!db) return null;
     return await db.collection('pages').findOne({ pageId });
@@ -147,9 +146,9 @@ async function extendSubscription(pageId, months) {
 }
 
 async function isSubscriptionActive(pageId) {
-    if (!db) return false; // if DB down, don't reply
+    if (!db) return false;
     const doc = await db.collection('pages').findOne({ pageId });
-    if (!doc || !doc.subscriptionExpiry) return true; // no expiry set = active
+    if (!doc || !doc.subscriptionExpiry) return true;
     return new Date() < new Date(doc.subscriptionExpiry);
 }
 
@@ -157,7 +156,7 @@ async function isSubscriptionActive(pageId) {
 const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
 
-    // ----- Webhook verification (GET) -----
+    // Webhook verification (GET)
     if (req.method === 'GET' && url.pathname === '/webhook') {
         const mode = url.searchParams.get('hub.mode');
         const token = url.searchParams.get('hub.verify_token');
@@ -173,16 +172,12 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    // ----- Admin panel for price editing (GET) -----
+    // Admin panel for price editing (GET)
     const adminMatch = url.pathname.match(/^\/admin\/(\d+)$/);
     if (req.method === 'GET' && adminMatch) {
         const pageId = adminMatch[1];
         const config = getPageConfig(pageId);
-        if (!config) {
-            res.writeHead(404);
-            res.end('Page not configured');
-            return;
-        }
+        if (!config) { res.writeHead(404); res.end('Page not configured'); return; }
         if (!checkAuth(req, config.password)) {
             res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Admin Panel"' });
             res.end('Unauthorized');
@@ -191,32 +186,26 @@ const server = http.createServer(async (req, res) => {
         const pageData = await getPageData(pageId);
         const prices = pageData?.prices || {};
         const html = `<!DOCTYPE html>
-        <html>
-        <head><title>Edit Prices - Page ${pageId}</title></head>
+        <html><head><title>Edit Prices - Page ${pageId}</title></head>
         <body>
             <h2>Edit Prices for Page ${pageId}</h2>
             <form method="POST" action="/admin/${pageId}">
                 <textarea name="prices" rows="15" cols="60">${JSON.stringify(prices, null, 2)}</textarea><br><br>
                 <button type="submit">Save</button>
             </form>
-            <p>Format: { "item_code": price, "another_code": 29.99 }</p>
-            <p>Use exactly: <code>Code: item_code</code> in your Facebook post.</p>
-        </body>
-        </html>`;
+            <p>Format: { "item_code": price, ... }</p>
+            <p>Use: <code>Code: item_code</code> in your Facebook post.</p>
+        </body></html>`;
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.end(html);
         return;
     }
 
-    // ----- Admin panel (POST) -----
+    // Admin panel (POST)
     if (req.method === 'POST' && adminMatch) {
         const pageId = adminMatch[1];
         const config = getPageConfig(pageId);
-        if (!config) {
-            res.writeHead(404);
-            res.end('Page not configured');
-            return;
-        }
+        if (!config) { res.writeHead(404); res.end('Page not configured'); return; }
         if (!checkAuth(req, config.password)) {
             res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Admin Panel"' });
             res.end('Unauthorized');
@@ -240,7 +229,7 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    // ----- Secret endpoint for you to extend subscription (POST) -----
+    // Secret endpoint for extension (POST)
     if (req.method === 'POST' && url.pathname === '/extend-expiry') {
         const authHeader = req.headers.authorization;
         if (!authHeader || authHeader !== `Bearer ${MASTER_PASSWORD}`) {
@@ -270,26 +259,111 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    // ----- Receive comment events (POST) -----
+    // Dashboard (GET)
+    if (req.method === 'GET' && url.pathname === '/dashboard') {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || authHeader !== `Bearer ${MASTER_PASSWORD}`) {
+            res.writeHead(401, { 'WWW-Authenticate': 'Bearer realm="Dashboard"' });
+            res.end('Unauthorized');
+            return;
+        }
+        let pageIdsFromDB = [];
+        if (db) {
+            const docs = await db.collection('pages').find({}, { projection: { pageId: 1 } }).toArray();
+            pageIdsFromDB = [...new Set(docs.map(d => d.pageId))];
+        }
+        const extraPageIds = process.env.PAGE_IDS_LIST ? process.env.PAGE_IDS_LIST.split(',') : [];
+        const allPageIds = [...new Set([...pageIdsFromDB, ...extraPageIds])];
+        const pagesData = [];
+        for (const pageId of allPageIds) {
+            const doc = await db.collection('pages').findOne({ pageId });
+            pagesData.push({
+                pageId,
+                expiry: doc?.subscriptionExpiry ? new Date(doc.subscriptionExpiry).toISOString().slice(0,10) : 'No expiry (active)'
+            });
+        }
+        const html = `<!DOCTYPE html>
+        <html>
+        <head><title>Bot Admin Dashboard</title>
+        <style>
+            body { font-family: Arial; margin: 2rem; }
+            table { border-collapse: collapse; width: 100%; max-width: 800px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+            button { padding: 6px 12px; margin: 2px; cursor: pointer; }
+            .expired { color: red; font-weight: bold; }
+            .active { color: green; }
+            #newPageForm { margin-top: 2rem; padding: 1rem; background: #f9f9f9; border: 1px solid #ccc; }
+        </style>
+        </head>
+        <body>
+            <h1>📊 Bot Dashboard</h1>
+            <table><thead><tr><th>Page ID</th><th>Subscription Expiry</th><th>Action</th></tr></thead>
+            <tbody>
+                ${pagesData.map(p => `
+                    <tr>
+                        <td>${p.pageId}</td>
+                        <td class="${p.expiry === 'No expiry (active)' ? 'active' : (new Date(p.expiry) < new Date() ? 'expired' : '')}">${p.expiry}</td>
+                        <td>
+                            <button onclick="extend('${p.pageId}',1)">+1 Month</button>
+                            <button onclick="extend('${p.pageId}',3)">+3 Months</button>
+                            <button onclick="extend('${p.pageId}',12)">+12 Months</button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody></table>
+            <div id="newPageForm">
+                <h3>➕ Add / Initialize a New Page</h3>
+                <input type="text" id="newPageId" placeholder="Page ID" />
+                <input type="number" id="initMonths" placeholder="Initial months (e.g., 1)" />
+                <button onclick="initPage()">Create & Extend</button>
+                <span id="newPageResult"></span>
+            </div>
+            <script>
+                async function extend(pageId, months) {
+                    const res = await fetch('/extend-expiry', {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ${MASTER_PASSWORD}', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ pageId, months })
+                    });
+                    if (res.ok) { alert(\`Extended \${pageId} by \${months} month(s)\`); location.reload(); }
+                    else alert('Failed');
+                }
+                async function initPage() {
+                    const pageId = document.getElementById('newPageId').value.trim();
+                    const months = parseInt(document.getElementById('initMonths').value);
+                    if (!pageId || isNaN(months) || months <= 0) { alert('Invalid'); return; }
+                    const res = await fetch('/extend-expiry', {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ${MASTER_PASSWORD}', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ pageId, months })
+                    });
+                    if (res.ok) { alert(\`Page \${pageId} created.\`); location.reload(); }
+                    else alert('Failed');
+                }
+            </script>
+        </body>
+        </html>`;
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(html);
+        return;
+    }
+
+    // Receive comment events (POST)
     if (req.method === 'POST' && url.pathname === '/webhook') {
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', async () => {
-            console.log('Received webhook body:', body);
+            console.log('Received webhook');
             try {
                 const data = JSON.parse(body);
                 if (data.object === 'page') {
                     for (const entry of data.entry) {
                         const pageId = entry.id;
                         const config = getPageConfig(pageId);
-                        if (!config) {
-                            console.error(`Unknown page ${pageId}, ignoring`);
-                            continue;
-                        }
-                        // Check subscription expiry
-                        const active = await isSubscriptionActive(pageId);
-                        if (!active) {
-                            console.log(`Page ${pageId} subscription expired. Skipping replies.`);
+                        if (!config) continue;
+                        if (!(await isSubscriptionActive(pageId))) {
+                            console.log(`Page ${pageId} expired – skipping`);
                             continue;
                         }
                         for (const change of entry.changes || []) {
@@ -298,11 +372,8 @@ const server = http.createServer(async (req, res) => {
                                 const commentId = comment.comment_id || comment.id;
                                 const postId = comment.post_id;
                                 if (postId && commentId) {
-                                    // Send public random reply immediately
                                     sendPublicReply(commentId, config.token);
-                                    // Then handle price lookup and private reply
                                     fetchPostContent(postId, config.token, async (postMessage) => {
-                                        console.log(`Post ${postId} content: ${postMessage}`);
                                         const code = extractCodeFromPost(postMessage);
                                         if (code) {
                                             const pageData = await getPageData(pageId);
@@ -310,7 +381,7 @@ const server = http.createServer(async (req, res) => {
                                             if (price !== undefined) {
                                                 sendPrivateReply(commentId, `The price for this item is $${price}.`, config.token);
                                             } else {
-                                                sendPrivateReply(commentId, `Sorry, price for code "${code}" not found. Please contact the page owner.`, config.token);
+                                                sendPrivateReply(commentId, `Sorry, price for code "${code}" not found.`, config.token);
                                             }
                                         } else {
                                             sendPrivateReply(commentId, 'Please include an item code in the post, e.g., "Code: item_blue_widget"', config.token);
@@ -322,7 +393,7 @@ const server = http.createServer(async (req, res) => {
                     }
                 }
             } catch (err) {
-                console.error('Error parsing webhook:', err);
+                console.error(err);
             }
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ status: 'ok' }));
@@ -330,7 +401,6 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    // ----- Anything else -----
     res.writeHead(404);
     res.end('Not found');
 });
@@ -338,6 +408,5 @@ const server = http.createServer(async (req, res) => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-    console.log(`Verify token: ${VERIFY_TOKEN ? '✓ set' : '✗ missing'}`);
-    console.log('Waiting for comments...');
+    console.log(`Dashboard: /dashboard (Bearer token with MASTER_PW)`);
 });
