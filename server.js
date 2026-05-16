@@ -401,6 +401,30 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+
+
+
+
+
+
+    // ----- Privacy policy page -----
+    if (req.method === 'GET' && url.pathname === '/privacy') {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(`<!DOCTYPE html>
+        <html>
+        <head><title>Privacy Policy</title></head>
+        <body>
+            <h1>Privacy Policy</h1>
+            <p>This bot reads comments on your Facebook Page and replies with prices based on item codes. It does not store personal data beyond what is necessary for the bot to function. No data is shared with third parties.</p>
+            <p>For any questions, contact: ramimamdouhali@gmail.com</p>
+        </body>
+        </html>`);
+        return;
+    }
+
+
+
+
     res.writeHead(404);
     res.end('Not found');
 });
