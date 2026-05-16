@@ -415,7 +415,7 @@ const server = http.createServer(async (req, res) => {
         <head><title>Privacy Policy</title></head>
         <body>
             <h1>Privacy Policy</h1>
-            <p>This bot reads comments on your Facebook Page and replies with prices based on item codes. It does not store personal data beyond what is necessary for the bot to function. No data is shared with third parties.</p>
+            <p>This bot read comments on your Facebook Page and replies with prices based on item codes. It does not store personal data beyond what is necessary for the bot to function. No data is shared with third parties.</p>
             <p>For any questions, contact: ramimamdouhali@gmail.com</p>
         </body>
         </html>`);
