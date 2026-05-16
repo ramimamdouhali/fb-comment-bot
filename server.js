@@ -349,31 +349,53 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    // Receive comment events (POST)
+
+
+
+
+
+
+
+        // ----- Receive comment events (POST) -----
     if (req.method === 'POST' && url.pathname === '/webhook') {
+        console.log('📨 POST /webhook received');  // <-- debug
         let body = '';
-        req.on('data', chunk => body += chunk);
+        req.on('data', chunk => {
+            body += chunk;
+            console.log(`📦 chunk length: ${chunk.length}`); // <-- debug
+        });
         req.on('end', async () => {
-            console.log('Received webhook');
+            console.log('✅ Webhook body length:', body.length);
+            console.log('📄 Body preview:', body.substring(0, 500));
             try {
                 const data = JSON.parse(body);
+                console.log('🔍 Parsed data object:', Object.keys(data));
                 if (data.object === 'page') {
+                    console.log('📑 Processing page object');
                     for (const entry of data.entry) {
                         const pageId = entry.id;
+                        console.log(`🆔 Page ID: ${pageId}`);
                         const config = getPageConfig(pageId);
-                        if (!config) continue;
-                        if (!(await isSubscriptionActive(pageId))) {
-                            console.log(`Page ${pageId} expired – skipping`);
+                        if (!config) {
+                            console.error(`❌ Unknown page ${pageId}, ignoring`);
+                            continue;
+                        }
+                        const active = await isSubscriptionActive(pageId);
+                        if (!active) {
+                            console.log(`⏸️ Page ${pageId} subscription expired – skipping`);
                             continue;
                         }
                         for (const change of entry.changes || []) {
                             if (change.field === 'feed') {
+                                console.log('💬 Feed change detected');
                                 const comment = change.value;
                                 const commentId = comment.comment_id || comment.id;
                                 const postId = comment.post_id;
+                                console.log(`🆔 commentId: ${commentId}, postId: ${postId}`);
                                 if (postId && commentId) {
                                     sendPublicReply(commentId, config.token);
                                     fetchPostContent(postId, config.token, async (postMessage) => {
+                                        console.log(`📝 Post content: ${postMessage}`);
                                         const code = extractCodeFromPost(postMessage);
                                         if (code) {
                                             const pageData = await getPageData(pageId);
@@ -387,13 +409,17 @@ const server = http.createServer(async (req, res) => {
                                             sendPrivateReply(commentId, 'Please include an item code in the post, e.g., "Code: item_blue_widget"', config.token);
                                         }
                                     });
+                                } else {
+                                    console.log('⚠️ Missing commentId or postId');
                                 }
                             }
                         }
                     }
+                } else {
+                    console.log('❌ Not a page object');
                 }
             } catch (err) {
-                console.error(err);
+                console.error('💥 Error parsing webhook:', err);
             }
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ status: 'ok' }));
@@ -401,6 +427,11 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+
+    
+
+
+    
 
 
 
