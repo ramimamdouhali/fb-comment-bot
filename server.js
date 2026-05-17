@@ -420,7 +420,7 @@ const server = http.createServer(async (req, res) => {
                                                 sendPrivateReply(commentId, `عذرا، لم أعثر على سعر هذا المنتج: "${code}" لمعرفة السعر علق هنا بنقطة.`, config.token);
                                                 // Owner alert
                                                 try {
-                                                    notifyPageOwner(pageId,`⚠️ Missing price for code "${code}" in post ${postId}`);
+                                                    notifyPageOwner(pageId,`INFO: Missing price for code "${code}" in post ${postId}`);
                                                     } catch (err) {
                                                     console.error('notifyPageOwner failed:', err);
                                                     }
@@ -430,7 +430,7 @@ const server = http.createServer(async (req, res) => {
                                             sendPrivateReply(commentId, 'عذرا، لايحتوي المنشور على معرف للمنتج المرغوب. لمعرفة السعر علق هنا بنقطة.', config.token);
                                             // Owner alert
                                             try {
-                                                    notifyPageOwner(pageId,`⚠️ No product code found in post ${postId}`);
+                                                    notifyPageOwner(pageId,`INFO: No product code found in post ${postId}`);
                                                     } catch (err) {
                                                     console.error('notifyPageOwner failed:', err);
                                                     }
