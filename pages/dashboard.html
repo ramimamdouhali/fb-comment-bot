@@ -1,1 +1,124 @@
+<!DOCTYPE html>
+<html>
 
+<head>
+    <title>Bot Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+        }
+
+        th, td {
+            border-bottom: 1px solid #ddd;
+            padding: 14px;
+            text-align: left;
+        }
+
+        th {
+            background: #f0f2f5;
+        }
+
+        button {
+            background: #1877f2;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        button:hover {
+            background: #1669d9;
+        }
+
+        .add-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        input {
+            padding: 10px;
+            width: 250px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            margin-right: 10px;
+        }
+
+        .small-btn {
+            padding: 6px 10px;
+            font-size: 13px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>📊 Bot Dashboard</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Page ID</th>
+                <th>Subscription Expiry</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {{ROWS}}
+        </tbody>
+    </table>
+
+    <div class="add-section">
+
+        <h2>➕ Add / Initialize a New Page</h2>
+
+        <form method="POST" action="/dashboard/add">
+
+            <input
+                type="text"
+                name="pageId"
+                placeholder="Page ID"
+                required
+            >
+
+            <button type="submit">
+                Create & Extend
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>
