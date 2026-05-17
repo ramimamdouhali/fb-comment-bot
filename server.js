@@ -286,70 +286,68 @@ const server = http.createServer(async (req, res) => {
                 expiry: doc?.subscriptionExpiry ? new Date(doc.subscriptionExpiry).toISOString().slice(0,10) : 'No expiry (active)'
             });
         }
-        
-        const html = `<!DOCTYPE html>
-        <html>
-        <head><title>Bot Admin Dashboard</title>
-        <style>
-            body { font-family: Arial; margin: 2rem; }
-            table { border-collapse: collapse; width: 100%; max-width: 800px; }
-            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-            button { padding: 6px 12px; margin: 2px; cursor: pointer; }
-            .expired { color: red; font-weight: bold; }
-            .active { color: green; }
-            #newPageForm { margin-top: 2rem; padding: 1rem; background: #f9f9f9; border: 1px solid #ccc; }
-        </style>
-        </head>
-        <body>
-            <h1>📊 Bot Dashboard</h1>
-            <table><thead><tr><th>Page ID</th><th>Subscription Expiry</th><th>Action</th></tr></thead>
-            <tbody>
-                ${pagesData.map(p => `
-                    <tr>
-                        <td>${p.pageId}</td>
-                        <td class="${p.expiry === 'No expiry (active)' ? 'active' : (new Date(p.expiry) < new Date() ? 'expired' : '')}">${p.expiry}</td>
-                        <td>
-                            <button onclick="extend('${p.pageId}',1)">+1 Month</button>
-                            <button onclick="extend('${p.pageId}',3)">+3 Months</button>
-                            <button onclick="extend('${p.pageId}',12)">+12 Months</button>
-                        </td>
-                    </tr>
-                `).join('')}
-            </tbody></table>
-            <div id="newPageForm">
-                <h3>➕ Add / Initialize a New Page</h3>
-                <input type="text" id="newPageId" placeholder="Page ID" />
-                <input type="number" id="initMonths" placeholder="Initial months (e.g., 1)" />
-                <button onclick="initPage()">Create & Extend</button>
-                <span id="newPageResult"></span>
-            </div>
-            <script>
-                async function extend(pageId, months) {
-                    const res = await fetch('/extend-expiry', {
-                        method: 'POST',
-                        headers: { 'Authorization': 'Bearer ${MASTER_PASSWORD}', 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ pageId, months })
-                    });
-                    if (res.ok) { alert(\`Extended \${pageId} by \${months} month(s)\`); location.reload(); }
-                    else alert('Failed');
-                }
-                async function initPage() {
-                    const pageId = document.getElementById('newPageId').value.trim();
-                    const months = parseInt(document.getElementById('initMonths').value);
-                    if (!pageId || isNaN(months) || months <= 0) { alert('Invalid'); return; }
-                    const res = await fetch('/extend-expiry', {
-                        method: 'POST',
-                        headers: { 'Authorization': 'Bearer ${MASTER_PASSWORD}', 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ pageId, months })
-                    });
-                    if (res.ok) { alert(\`Page \${pageId} created.\`); location.reload(); }
-                    else alert('Failed');
-                }
-            </script>
-        </body>
-        </html>`;
 
+
+
+
+
+
+        
+        const pages = await db.collection('pages').find().toArray();
+        
+        let html = fs.readFileSync('./pages/dashboard.html', 'utf8');
+        
+        const rows = pages.map(page => `
+        <tr>
+            <td>${page.pageId}</td>
+        
+            <td>
+                ${page.subscriptionExpiry
+                    ? new Date(page.subscriptionExpiry)
+                        .toISOString()
+                        .split('T')[0]
+                    : 'No expiry'}
+            </td>
+        
+            <td>
+        
+                <form method="POST" action="/dashboard/extend" style="display:inline;">
+                    <input type="hidden" name="pageId" value="${page.pageId}">
+                    <input type="hidden" name="months" value="1">
+                    <button class="small-btn" type="submit">
+                        +1 Month
+                    </button>
+                </form>
+        
+                <form method="POST" action="/dashboard/extend" style="display:inline;">
+                    <input type="hidden" name="pageId" value="${page.pageId}">
+                    <input type="hidden" name="months" value="3">
+                    <button class="small-btn" type="submit">
+                        +3 Months
+                    </button>
+                </form>
+        
+                <form method="POST" action="/dashboard/extend" style="display:inline;">
+                    <input type="hidden" name="pageId" value="${page.pageId}">
+                    <input type="hidden" name="months" value="12">
+                    <button class="small-btn" type="submit">
+                        +12 Months
+                    </button>
+                </form>
+        
+            </td>
+        </tr>
+        `).join('');
+        
+        html = html.replace('{{ROWS}}', rows);
+        
+
+        
+
+
+
+
+        
         
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.end(html);
