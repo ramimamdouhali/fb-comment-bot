@@ -112,6 +112,11 @@ function sendPrivateReply(commentId, text, accessToken) {
     req.end();
 }
 
+function notifyPageOwner(pageId, message) {
+    console.log(`📢 OWNER ALERT [${pageId}] ${message}`);
+}
+
+
 // ---------- HTTP Basic Auth ----------
 function checkAuth(req, expectedPassword) {
     const authHeader = req.headers.authorization;
@@ -413,11 +418,23 @@ const server = http.createServer(async (req, res) => {
                                             } else {
                                                 //sendPrivateReply(commentId, `Sorry, price for code "${code}" not found.`, config.token);
                                                 sendPrivateReply(commentId, `عذرا، لم أعثر على سعر هذا المنتج: "${code}" لمعرفة السعر علق هنا بنقطة.`, config.token);
-                                               
+                                                // Owner alert
+                                                try {
+                                                    notifyPageOwner(pageId,`⚠️ Missing price for code "${code}" in post ${postId}`);
+                                                    } catch (err) {
+                                                    console.error('notifyPageOwner failed:', err);
+                                                    }
                                             }
                                         } else {
                                             //sendPrivateReply(commentId, 'Please include an item code in the post, e.g., "Code: item_blue_widget"', config.token);
                                             sendPrivateReply(commentId, 'عذرا، لايحتوي المنشور على معرف للمنتج المرغوب. لمعرفة السعر علق هنا بنقطة.', config.token);
+                                            // Owner alert
+                                            try {
+                                                    notifyPageOwner(pageId,`⚠️ No product code found in post ${postId}`);
+                                                    } catch (err) {
+                                                    console.error('notifyPageOwner failed:', err);
+                                                    }
+                                            
                                              
                                         }
                                     });
