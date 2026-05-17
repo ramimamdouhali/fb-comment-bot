@@ -196,13 +196,10 @@ const server = http.createServer(async (req, res) => {
             return;
         }
         const pageData = await getPageData(pageId);
-        const prices = pageData?.prices || {};
-        
+        const prices = pageData?.prices || {};        
         let html = fs.readFileSync('./pages/admin.html', 'utf8');
         html = html.replaceAll('{{PAGE_ID}}', pageId);
         html = html.replace('{{PRICES}}',JSON.stringify(prices, null, 2));
-        
-        
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.end(html);
         return;
@@ -289,6 +286,7 @@ const server = http.createServer(async (req, res) => {
                 expiry: doc?.subscriptionExpiry ? new Date(doc.subscriptionExpiry).toISOString().slice(0,10) : 'No expiry (active)'
             });
         }
+        
         const html = `<!DOCTYPE html>
         <html>
         <head><title>Bot Admin Dashboard</title>
@@ -351,6 +349,8 @@ const server = http.createServer(async (req, res) => {
             </script>
         </body>
         </html>`;
+
+        
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.end(html);
         return;
