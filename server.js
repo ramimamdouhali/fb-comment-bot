@@ -159,7 +159,7 @@ async function extendSubscription(pageId, months) {
 async function isSubscriptionActive(pageId) {
     if (!db) return false;
     const doc = await db.collection('pages').findOne({ pageId });
-    if (!doc || !doc.subscriptionExpiry) return true;
+    if (!doc || !doc.subscriptionExpiry) return false;
     return new Date() < new Date(doc.subscriptionExpiry);
 }
 
