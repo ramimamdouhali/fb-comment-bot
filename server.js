@@ -78,7 +78,10 @@ function sendPublicReply(commentId, accessToken) {
     const req = https.request(options, (res) => {
         let data = '';
         res.on('data', chunk => data += chunk);
-        res.on('end', () => console.log(`Public reply sent: ${message}`));
+        res.on('end', () => {
+    console.log('Public reply API response:', data);
+});
+        
     });
     req.on('error', (err) => console.error('Public reply error:', err));
     req.write(payload);
@@ -99,7 +102,10 @@ function sendPrivateReply(commentId, text, accessToken) {
     const req = https.request(options, (res) => {
         let data = '';
         res.on('data', chunk => data += chunk);
-        res.on('end', () => console.log(`Private reply sent: ${text}`));
+        res.on('end', () => {
+    console.log('Private reply API response:', data);
+});
+        
     });
     req.on('error', (err) => console.error('Private reply error:', err));
     req.write(payload);
