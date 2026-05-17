@@ -1,19 +1,1 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Edit Prices - Page {{PAGE_ID}}</title>
-</head>
-<body>
-    <h2>Edit Prices for Page {{PAGE_ID}}</h2>
 
-    <form method="POST" action="/admin/{{PAGE_ID}}">
-        <textarea name="prices" rows="15" cols="60">{{PRICES}}</textarea>
-        <br><br>
-
-        <button type="submit">Save</button>
-    </form>
-
-    <p>Format: { "item_code": price, ... }</p>
-    <p>Use: <code>Code: item_code</code> in your Facebook post.</p>
-</body>
-</html>
