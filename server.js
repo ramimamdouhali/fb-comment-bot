@@ -363,6 +363,10 @@ const server = http.createServer(async (req, res) => {
 
 
         // ----- Receive comment events (POST) -----
+    function notifyPageOwner(pageId, message) {
+    console.log(`📢 OWNER ALERT [${pageId}] ${message}`);
+}
+    
     if (req.method === 'POST' && url.pathname === '/webhook') {
         console.log('📨 POST /webhook received');  // <-- debug
         let body = '';
