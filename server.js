@@ -421,7 +421,7 @@ const server = http.createServer(async (req, res) => {
                                             }
                                         } else {
                                             //sendPrivateReply(commentId, 'Please include an item code in the post, e.g., "Code: item_blue_widget"', config.token);
-                                            sendPrivateReply(commentId, 'عذرا، لايحتوي المنشور على معرف للمنتج المرغوب. لمعرفة السعر علق هنا بنقطة،.', config.token);
+                                            sendPrivateReply(commentId, 'عذرا، لايحتوي المنشور على معرف للمنتج المرغوب. لمعرفة السعر علق هنا بنقطة.', config.token);
                                              // Owner alert
                                                 notifyPageOwner(pageId,`⚠️ No product code found in post ${postId}`);
                                         }
