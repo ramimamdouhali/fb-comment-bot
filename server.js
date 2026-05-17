@@ -404,11 +404,16 @@ const server = http.createServer(async (req, res) => {
                                 const commentId = comment.comment_id || comment.id;
                                 const postId = comment.post_id;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                const commenterId = comment.from?.id;
+                                if (commenterId === pageId) {
+                                    console.log(`Ignoring page self-comment: ${commentId}`);
+                                    continue;
+                                    }                                
                                 if (processedComments.has(commentId)) {
                                     console.log(`Duplicate comment ignored: ${commentId}`);
                                     continue;
                                     }
-                                processedComments.add(commentId);
+                                
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////                               
                                 console.log(`🆔 commentId: ${commentId}, postId: ${postId}`);
                                 if (postId && commentId) {
@@ -422,6 +427,7 @@ const server = http.createServer(async (req, res) => {
                                             if (price !== undefined) {
                                                 // sendPrivateReply(commentId, `The price for this item is $${price}.`, config.token);
                                                 sendPrivateReply(commentId, `سعر هذا المنتج هو:${price}.`, config.token);
+                                                processedComments.add(commentId);
                                             } else {
                                                 //sendPrivateReply(commentId, `Sorry, price for code "${code}" not found.`, config.token);
                                                 sendPrivateReply(commentId, `عذرا، لم أعثر على سعر هذا المنتج: "${code}" لمعرفة السعر علق هنا بنقطة.`, config.token);
