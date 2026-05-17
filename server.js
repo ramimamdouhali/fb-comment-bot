@@ -407,8 +407,8 @@ const server = http.createServer(async (req, res) => {
                                             const pageData = await getPageData(pageId);
                                             const price = pageData?.prices?.[code];
                                             if (price !== undefined) {
-                                                sendPrivateReply(commentId, `The price for this item is $${price}.`, config.token);
-                                                sendPrivateReply(commentId, `\u200F:سعر هذا العنصر هو ${price}.`, config.token);
+                                                // sendPrivateReply(commentId, `The price for this item is $${price}.`, config.token);
+                                                sendPrivateReply(commentId, `سعر هذا العنصر هو:${price}.`, config.token);
                                             } else {
                                                 sendPrivateReply(commentId, `Sorry, price for code "${code}" not found.`, config.token);
                                             }
