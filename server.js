@@ -363,10 +363,7 @@ const server = http.createServer(async (req, res) => {
 
 
         // ----- Receive comment events (POST) -----
-    function notifyPageOwner(pageId, message) {
-    console.log(`📢 OWNER ALERT [${pageId}] ${message}`);
-}
-    
+   
     if (req.method === 'POST' && url.pathname === '/webhook') {
         console.log('📨 POST /webhook received');  // <-- debug
         let body = '';
@@ -416,14 +413,12 @@ const server = http.createServer(async (req, res) => {
                                             } else {
                                                 //sendPrivateReply(commentId, `Sorry, price for code "${code}" not found.`, config.token);
                                                 sendPrivateReply(commentId, `عذرا، لم أعثر على سعر هذا المنتج: "${code}" لمعرفة السعر علق هنا بنقطة.`, config.token);
-                                                // Owner alert
-                                                notifyPageOwner(pageId,`⚠️ Missing price for code "${code}" in post ${postId}`);
+                                               
                                             }
                                         } else {
                                             //sendPrivateReply(commentId, 'Please include an item code in the post, e.g., "Code: item_blue_widget"', config.token);
                                             sendPrivateReply(commentId, 'عذرا، لايحتوي المنشور على معرف للمنتج المرغوب. لمعرفة السعر علق هنا بنقطة.', config.token);
-                                             // Owner alert
-                                                notifyPageOwner(pageId,`⚠️ No product code found in post ${postId}`);
+                                             
                                         }
                                     });
                                 } else {
