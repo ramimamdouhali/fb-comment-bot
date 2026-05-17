@@ -1,3 +1,4 @@
+const fs = require('fs');
 const http = require('http');
 const https = require('https');
 const { MongoClient } = require('mongodb');
@@ -196,17 +197,12 @@ const server = http.createServer(async (req, res) => {
         }
         const pageData = await getPageData(pageId);
         const prices = pageData?.prices || {};
-        const html = `<!DOCTYPE html>
-        <html><head><title>Edit Prices - Page ${pageId}</title></head>
-        <body>
-            <h2>Edit Prices for Page ${pageId}</h2>
-            <form method="POST" action="/admin/${pageId}">
-                <textarea name="prices" rows="15" cols="60">${JSON.stringify(prices, null, 2)}</textarea><br><br>
-                <button type="submit">Save</button>
-            </form>
-            <p>Format: { "item_code": price, ... }</p>
-            <p>Use: <code>Code: item_code</code> in your Facebook post.</p>
-        </body></html>`;
+        
+        let html = fs.readFileSync('./pages/admin.html', 'utf8');
+        html = html.replaceAll('{{PAGE_ID}}', pageId);
+        html = html.replace('{{PRICES}}',JSON.stringify(prices, null, 2));
+        
+        
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.end(html);
         return;
