@@ -408,9 +408,10 @@ const server = http.createServer(async (req, res) => {
                                             const price = pageData?.prices?.[code];
                                             if (price !== undefined) {
                                                 // sendPrivateReply(commentId, `The price for this item is $${price}.`, config.token);
-                                                sendPrivateReply(commentId, `سعر هذا العنصر هو:${price}.`, config.token);
+                                                sendPrivateReply(commentId, `سعر هذا المنتج هو:${price}.`, config.token);
                                             } else {
-                                                sendPrivateReply(commentId, `Sorry, price for code "${code}" not found.`, config.token);
+                                                //sendPrivateReply(commentId, `Sorry, price for code "${code}" not found.`, config.token);
+                                                sendPrivateReply(commentId, `عذرا، لم أعثر على سعر هذا المنتج: "${code}".`, config.token);
                                             }
                                         } else {
                                             sendPrivateReply(commentId, 'Please include an item code in the post, e.g., "Code: item_blue_widget"', config.token);
