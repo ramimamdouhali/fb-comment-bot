@@ -411,11 +411,11 @@ const server = http.createServer(async (req, res) => {
                                                 sendPrivateReply(commentId, `سعر هذا المنتج هو:${price}.`, config.token);
                                             } else {
                                                 //sendPrivateReply(commentId, `Sorry, price for code "${code}" not found.`, config.token);
-                                                sendPrivateReply(commentId, `عذرا، لم أعثر على سعر هذا المنتج: "${code}" لمعرفة السعر يمكنك مراسلة الصفحة مرفقا معها كود تعريف المنتج.`, config.token);
+                                                sendPrivateReply(commentId, `عذرا، لم أعثر على سعر هذا المنتج: "${code}" لمعرفة السعر علق هنا بنقطة.`, config.token);
                                             }
                                         } else {
                                             //sendPrivateReply(commentId, 'Please include an item code in the post, e.g., "Code: item_blue_widget"', config.token);
-                                            sendPrivateReply(commentId, 'عذرا، لايحتوي المنشور على معرف للمنتج المرغوب. لمعرفة السعر يرجى مراسلة الصفحة، زود الرسالة برابط المنشور او صورة عن المنتج المرغوب.', config.token);
+                                            sendPrivateReply(commentId, 'عذرا، لايحتوي المنشور على معرف للمنتج المرغوب. لمعرفة السعر علق هنا بنقطة،.', config.token);
                                         }
                                     });
                                 } else {
