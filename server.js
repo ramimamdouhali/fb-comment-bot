@@ -113,7 +113,7 @@ function sendPrivateReply(commentId, text, accessToken) {
 }
 
 function notifyPageOwner(pageId, message) {
-    console.log(`[OWNER NOTICE] [${pageId}] ${message}`);
+    console.log(`[${pageId}] ${message}`);
 }
 
 
