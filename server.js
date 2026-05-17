@@ -1,7 +1,7 @@
 const http = require('http');
 const https = require('https');
 const { MongoClient } = require('mongodb');
-
+const processedComments = new Set();
 // ---------- Environment Variables ----------
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 const MASTER_PASSWORD = process.env.MASTER_PW;
@@ -403,6 +403,13 @@ const server = http.createServer(async (req, res) => {
                                 const comment = change.value;
                                 const commentId = comment.comment_id || comment.id;
                                 const postId = comment.post_id;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                if (processedComments.has(commentId)) {
+                                    console.log(`Duplicate comment ignored: ${commentId}`);
+                                    continue;
+                                    }
+                                processedComments.add(commentId);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////                               
                                 console.log(`🆔 commentId: ${commentId}, postId: ${postId}`);
                                 if (postId && commentId) {
                                     sendPublicReply(commentId, config.token);
