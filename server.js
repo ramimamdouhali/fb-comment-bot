@@ -190,7 +190,9 @@ const server = http.createServer(async (req, res) => {
         const pageId = adminMatch[1];
         const config = getPageConfig(pageId);
         if (!config) { res.writeHead(404); res.end('Page not configured'); return; }
-        if (!checkAuth(req, config.password)) {
+        if (!checkAuth(req, config.password)) &&
+            !checkAuth(req, process.env.MASTER_PW)
+        ) {
             res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Admin Panel"' });
             res.end('Unauthorized');
             return;
@@ -210,7 +212,9 @@ const server = http.createServer(async (req, res) => {
         const pageId = adminMatch[1];
         const config = getPageConfig(pageId);
         if (!config) { res.writeHead(404); res.end('Page not configured'); return; }
-        if (!checkAuth(req, config.password)) {
+        if (!checkAuth(req, config.password)) &&
+            !checkAuth(req, process.env.MASTER_PW)
+        ) {
             res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Admin Panel"' });
             res.end('Unauthorized');
             return;
