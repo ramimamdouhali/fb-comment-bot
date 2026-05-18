@@ -239,7 +239,63 @@ const server = http.createServer(async (req, res) => {
             return;
         }    
         const pageData = await getPageData(pageId);    
-        const prices = pageData?.prices || {};    
+        const prices = pageData?.prices || {}; 
+
+        const expiryDate =
+            new Date(
+                config.subscriptionExpiry
+            );
+        
+        const now = new Date();
+        
+        const diffMs =
+            expiryDate - now;
+        
+        const daysRemaining =
+            Math.ceil(
+                diffMs / (
+                    1000 * 60 * 60 * 24
+                )
+            );
+        
+        let subscriptionClass =
+            'subscription-safe';
+        
+        let subscriptionText =
+            `${daysRemaining} days remaining`;
+        
+        if (daysRemaining <= 7) {
+        
+            subscriptionClass =
+                'subscription-warning';
+        }
+        
+        if (daysRemaining <= 0) {
+        
+            subscriptionClass =
+                'subscription-expired';
+        
+            subscriptionText =
+                'Expired';
+        }
+        
+        const subscriptionInfo = `
+        <div class="subscription-box ${subscriptionClass}">
+        
+            <strong>
+                Subscription Expiry:
+            </strong>
+        
+            ${config.subscriptionExpiry}
+        
+            <br>
+        
+            ${subscriptionText}
+        
+        </div>
+        `;
+
+        
 
         const success = url.searchParams.get('success');        
         const error = url.searchParams.get('error');        
@@ -392,6 +448,8 @@ const server = http.createServer(async (req, res) => {
                 FLASH_MESSAGE: flashMessage,
                 ROWS: rows,
                 PAGE_ID: pageId
+                SUBSCRIPTION_INFO:
+                    subscriptionInfo,
             }
         );
            
