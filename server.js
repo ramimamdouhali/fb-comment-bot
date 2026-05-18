@@ -248,7 +248,7 @@ const server = http.createServer(async (req, res) => {
         const rows = Object.entries(prices)
         .map(([code, price]) => `
         
-        <tr>        
+        <tr data-code="${code.toLowerCase()}">        
             <form
                 method="POST"
                 action="/admin/${pageId}/edit"
