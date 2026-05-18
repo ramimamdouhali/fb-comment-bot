@@ -706,25 +706,96 @@ const server = http.createServer(async (req, res) => {
             return;
         }
         
-        const docs =
-            await db.collection('pages')
-            .find()
-            .toArray();
-        
         const rows = docs.map(doc => `
+        
         <tr>
-            <td>${doc.pageId}</td>
+        
+            <td>
+                ${doc.pageId}
+            </td>
         
             <td>
                 ${doc.subscriptionExpiry}
             </td>
         
             <td>
-                <a href="/admin/${doc.pageId}">
-                    Manage
-                </a>
+        
+                <form
+                    method="POST"
+                    action="/extend"
+                    style="display:inline;"
+                >
+        
+                    <input
+                        type="hidden"
+                        name="pageId"
+                        value="${doc.pageId}"
+                    >
+        
+                    <input
+                        type="hidden"
+                        name="months"
+                        value="1"
+                    >
+        
+                    <button type="submit">
+                        +1 Month
+                    </button>
+        
+                </form>
+        
+                <form
+                    method="POST"
+                    action="/extend"
+                    style="display:inline;"
+                >
+        
+                    <input
+                        type="hidden"
+                        name="pageId"
+                        value="${doc.pageId}"
+                    >
+        
+                    <input
+                        type="hidden"
+                        name="months"
+                        value="3"
+                    >
+        
+                    <button type="submit">
+                        +3 Months
+                    </button>
+        
+                </form>
+        
+                <form
+                    method="POST"
+                    action="/extend"
+                    style="display:inline;"
+                >
+        
+                    <input
+                        type="hidden"
+                        name="pageId"
+                        value="${doc.pageId}"
+                    >
+        
+                    <input
+                        type="hidden"
+                        name="months"
+                        value="12"
+                    >
+        
+                    <button type="submit">
+                        +12 Months
+                    </button>
+        
+                </form>
+        
             </td>
+        
         </tr>
+        
         `).join('');     
 
 
