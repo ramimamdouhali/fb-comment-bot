@@ -189,24 +189,70 @@ const server = http.createServer(async (req, res) => {
     }
 
     // Admin panel for price editing (GET)
-    const adminMatch = url.pathname.match(/^\/admin\/(\d+)$/);
-    if (req.method === 'GET' && adminMatch) {
-        const pageId = adminMatch[1];
-        const config = getPageConfig(pageId);
-        if (!config) { res.writeHead(404); res.end('Page not configured'); return; }
-        if (!checkAuth(req, config.password, process.env.MASTER_PW))
-            {
-                res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Admin Panel"' });
-                res.end('Unauthorized');
-                return;
-            }
-        const pageData = await getPageData(pageId);
-        const prices = pageData?.prices || {};        
-        let html = fs.readFileSync('./pages/admin.html', 'utf8');
-        html = html.replaceAll('{{PAGE_ID}}', pageId);
-        html = html.replace('{{PRICES}}',JSON.stringify(prices, null, 2));
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end(html);
+    // Admin panel for price editing (GET)
+    const adminMatch = url.pathname.match(/^\/admin\/(\d+)$/);    
+    if (req.method === 'GET' && adminMatch) {    
+        const pageId = adminMatch[1];    
+        const config = getPageConfig(pageId);    
+        if (!config) {
+            res.writeHead(404);
+            res.end('Page not configured');
+            return;
+        }    
+        if (
+            !checkAuth(
+                req,
+                config.password,
+                process.env.MASTER_PW
+            )
+        ) {
+            res.writeHead(401, {
+                'WWW-Authenticate': 'Basic realm="Admin Panel"'
+            });    
+            res.end('Unauthorized');    
+            return;
+        }    
+        const pageData = await getPageData(pageId);    
+        const prices = pageData?.prices || {};    
+        let html = fs.readFileSync(
+            './pages/admin.html',
+            'utf8'
+        );    
+        const rows = Object.entries(prices)
+        .map(([code, price]) => `    
+    <tr>
+        <td>${code}</td>    
+        <td>$${price}</td>    
+        <td>    
+            <form
+                method="POST"
+                action="/admin/${pageId}/delete"
+                style="display:inline;"
+            >    
+                <input
+                    type="hidden"
+                    name="code"
+                    value="${code}"
+                >    
+                <button
+                    class="delete-btn"
+                    type="submit"
+                >
+                    Delete
+                </button>    
+            </form>    
+        </td>
+    </tr>    
+    `).join('');    
+        html = html.replace('{{ROWS}}', rows);    
+        html = html.replaceAll(
+            '{{PAGE_ID}}',
+            pageId
+        );    
+        res.writeHead(200, {
+            'Content-Type': 'text/html'
+        });    
+        res.end(html);    
         return;
     }
 
