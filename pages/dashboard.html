@@ -103,7 +103,13 @@
 
     <h1>📊 Bot Dashboard</h1>
 
-    <table>
+    <input
+        type="text"
+        id="searchInput"
+        placeholder="🔍 Search Page ID..."
+        onkeyup="filterRows()"
+    >
+    <table id="dashboardTable">
         <thead>
             <tr>
                 <th>Page ID</th>
@@ -174,6 +180,60 @@ function toggleSaveButton(input) {
         saveButton.disabled = true;
     }
 }
+function filterRows() {
+
+    const input =
+        document
+            .getElementById(
+                'searchInput'
+            );
+
+    const filter =
+        input.value
+            .toLowerCase();
+
+    const table =
+        document
+            .getElementById(
+                'dashboardTable'
+            );
+
+    const rows =
+        table.getElementsByTagName(
+            'tr'
+        );
+
+    for (
+        let i = 1;
+        i < rows.length;
+        i++
+    ) {
+
+        const firstCell =
+            rows[i]
+                .getElementsByTagName(
+                    'td'
+                )[0];
+
+        if (!firstCell)
+            continue;
+
+        const text =
+            firstCell.textContent
+                .toLowerCase();
+
+        rows[i].style.display =
+            text.includes(filter)
+                ? ''
+                : 'none';
+    }
+}
+
+
+
+
+
+    
 
 </script>
     
