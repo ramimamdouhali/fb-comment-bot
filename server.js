@@ -323,6 +323,24 @@ function renderExtendButtons(
 }
 
 
+function renderFlashMessage(
+    type,
+    message
+) {
+
+    if (!message) return '';
+
+    return `
+
+        <div class="flash ${type}">
+            ${message}
+        </div>
+
+    `;
+}
+
+
+
 // ---------- HTTP Server ----------
 const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
