@@ -734,17 +734,17 @@ const server = http.createServer(async (req, res) => {
             <td>
             
                 <input
-                    type="datetime-local"
+                    type="date"
             
                     value="${
                         new Date(
                             doc.subscriptionExpiry
                         )
                         .toISOString()
-                        .slice(0, 16)
+                        .split('T')[0]
                     }"
             
-                    readonly
+                    class="expiry-input"
                 >
             
             </td>
