@@ -439,22 +439,17 @@ const server = http.createServer(async (req, res) => {
                 const newPrices = JSON.parse(pricesText);
                 await savePrices(pageId, newPrices);
                 res.writeHead(200, { 'Content-Type': 'text/html' });               
-                let html = fs.readFileSync(
-                    './pages/success.html',
-                    'utf8'
-                );                
-                html = html.replace(
-                    '{{MESSAGE}}',
-                    'Prices saved successfully.'
-                );                
-                html = html.replace(
-                    '{{BACK_URL}}',
-                    `/admin/${pageId}`
-                );                
+              
                 res.writeHead(200, {
                     'Content-Type': 'text/html'
                 });                
-                res.end(html);                
+                res.writeHead(302, {
+                    Location:
+                        `/admin/${pageId}?success=added`
+                });
+                
+                res.end();
+                
             } catch (err) {
                 res.writeHead(400);
                 let html = fs.readFileSync(
