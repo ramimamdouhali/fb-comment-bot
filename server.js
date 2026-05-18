@@ -705,6 +705,10 @@ const server = http.createServer(async (req, res) => {
             res.end('Unauthorized');
             return;
         }
+        const docs = await db
+            .collection('pages')
+            .find()
+            .toArray();
         
         const rows = docs.map(doc => `
         
