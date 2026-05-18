@@ -706,12 +706,34 @@ const server = http.createServer(async (req, res) => {
             return;
         }
         
-        const pages = await db.collection('pages').find().toArray();        
+        const docs =
+            await db.collection('pages')
+            .find()
+            .toArray();
+        
+        const rows = docs.map(doc => `
+        <tr>
+            <td>${doc.pageId}</td>
+        
+            <td>
+                ${doc.subscriptionExpiry}
+            </td>
+        
+            <td>
+                <a href="/admin/${doc.pageId}">
+                    Manage
+                </a>
+            </td>
+        </tr>
+        `).join('');     
 
 
         renderPage(
             res,
             './pages/dashboard.html',
+            {
+                ROWS: rows
+            }
         );
 
         
