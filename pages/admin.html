@@ -129,6 +129,18 @@
     <input
         type="text"
         id="searchInput"
+        <select
+            id="sortSelect"
+            class="search-input"
+        >
+            <option value="az">
+                Sort A → Z
+            </option>
+        
+            <option value="za">
+                Sort Z → A
+            </option>
+        </select>        
         placeholder="🔍 Search products..."
         class="search-input"
     >
@@ -145,7 +157,7 @@
 
         </thead>
 
-        <tbody>
+        <tbody id="productsBody">
 
             {{ROWS}}
 
@@ -214,11 +226,38 @@
                 }    
             });    
         }
-    );    
+    );
+        const sortSelect =
+            document.getElementById(
+                'sortSelect'
+            );        
+        sortSelect.addEventListener(
+            'change',
+            function () {        
+                const tbody =
+                    document.getElementById(
+                        'productsBody'
+                    );        
+                const rows =
+                    Array.from(
+                        tbody.querySelectorAll('tr')
+                    );        
+                rows.sort((a, b) => {        
+                    const codeA =
+                        a.dataset.code;        
+                    const codeB =
+                        b.dataset.code;        
+                    if (this.value === 'az') {        
+                        return codeA.localeCompare(codeB);        
+                    } else {        
+                        return codeB.localeCompare(codeA);
+                    }        
+                });        
+                rows.forEach(row => {
+                    tbody.appendChild(row);
+                });        
+            }
+        );        
     </script>
-
-
-    
-
 </body>
 </html>
