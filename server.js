@@ -174,15 +174,63 @@ async function savePrices(pageId, prices) {
     return true;
 }
 
-async function extendSubscription(pageId, months) {
+async function extendSubscription(
+    pageId,
+    months
+) {
+
     if (!db) return false;
-    const newExpiry = new Date();
-    newExpiry.setMonth(newExpiry.getMonth() + months);
-    await db.collection('pages').updateOne(
-        { pageId },
-        { $set: { subscriptionExpiry: newExpiry } },
-        { upsert: true }
+
+    const page =
+        await db
+            .collection('pages')
+            .findOne({ pageId });
+
+    const now =
+        new Date();
+
+    let baseDate = now;
+
+    if (
+        page
+        &&
+        page.subscriptionExpiry
+    ) {
+
+        const currentExpiry =
+            new Date(
+                page.subscriptionExpiry
+            );
+
+        if (
+            currentExpiry > now
+        ) {
+
+            baseDate =
+                currentExpiry;
+        }
+    }
+
+    const newExpiry =
+        new Date(baseDate);
+
+    newExpiry.setMonth(
+        newExpiry.getMonth() + months
     );
+
+    await db
+        .collection('pages')
+        .updateOne(
+            { pageId },
+            {
+                $set: {
+                    subscriptionExpiry:
+                        newExpiry
+                }
+            },
+            { upsert: true }
+        );
+
     return newExpiry;
 }
 
