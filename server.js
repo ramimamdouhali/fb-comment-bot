@@ -241,6 +241,88 @@ async function isSubscriptionActive(pageId) {
     return new Date() < new Date(doc.subscriptionExpiry);
 }
 
+function renderExtendButtons(
+    pageId
+) {
+
+    return `
+
+        <form
+            method="POST"
+            action="/extend-expiry"
+            style="display:inline;"
+        >
+
+            <input
+                type="hidden"
+                name="pageId"
+                value="${pageId}"
+            >
+
+            <input
+                type="hidden"
+                name="months"
+                value="1"
+            >
+
+            <button type="submit">
+                +1 Month
+            </button>
+
+        </form>
+
+        <form
+            method="POST"
+            action="/extend-expiry"
+            style="display:inline;"
+        >
+
+            <input
+                type="hidden"
+                name="pageId"
+                value="${pageId}"
+            >
+
+            <input
+                type="hidden"
+                name="months"
+                value="3"
+            >
+
+            <button type="submit">
+                +3 Months
+            </button>
+
+        </form>
+
+        <form
+            method="POST"
+            action="/extend-expiry"
+            style="display:inline;"
+        >
+
+            <input
+                type="hidden"
+                name="pageId"
+                value="${pageId}"
+            >
+
+            <input
+                type="hidden"
+                name="months"
+                value="12"
+            >
+
+            <button type="submit">
+                +12 Months
+            </button>
+
+        </form>
+
+    `;
+}
+
+
 // ---------- HTTP Server ----------
 const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
@@ -343,8 +425,7 @@ const server = http.createServer(async (req, res) => {
                     month: 'short',
                     year: 'numeric',
                     hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
+                    minute: '2-digit',                    
                     hour12: false
                 }
             )}
@@ -933,80 +1014,8 @@ const server = http.createServer(async (req, res) => {
         
             </td>
         
-            <td>
-        
-                <form
-                    method="POST"
-                    action="/extend-expiry"
-                    style="display:inline;"
-                >
-        
-                    <input
-                        type="hidden"
-                        name="pageId"
-                        value="${doc.pageId}"
-                    >
-        
-                    <input
-                        type="hidden"
-                        name="months"
-                        value="1"
-                    >
-        
-                    <button type="submit">
-                        +1 Month
-                    </button>
-        
-                </form>
-        
-                <form
-                    method="POST"
-                    action="/extend-expiry"
-                    style="display:inline;"
-                >
-        
-                    <input
-                        type="hidden"
-                        name="pageId"
-                        value="${doc.pageId}"
-                    >
-        
-                    <input
-                        type="hidden"
-                        name="months"
-                        value="3"
-                    >
-        
-                    <button type="submit">
-                        +3 Months
-                    </button>
-        
-                </form>
-        
-                <form
-                    method="POST"
-                    action="/extend-expiry"
-                    style="display:inline;"
-                >
-        
-                    <input
-                        type="hidden"
-                        name="pageId"
-                        value="${doc.pageId}"
-                    >
-        
-                    <input
-                        type="hidden"
-                        name="months"
-                        value="12"
-                    >
-        
-                    <button type="submit">
-                        +12 Months
-                    </button>
-        
-                </form>
-        
+            <td>    
+                ${renderExtendButtons(doc.pageId)}        
             </td>
         
         </tr>
