@@ -692,7 +692,19 @@ const server = http.createServer(async (req, res) => {
         req.on('data', chunk => body += chunk);
         req.on('end', async () => {
             try {
-                const { pageId, months } = JSON.parse(body);
+                //const { pageId, months } = JSON.parse(body);
+
+                const params =
+                    new URLSearchParams(body);
+                
+                const pageId =
+                    params.get('pageId');
+                
+                const months =
+                    parseInt(
+                        params.get('months')
+                    );
+                
                 if (!pageId || typeof months !== 'number' || months <= 0) {
                     res.writeHead(400);
                     res.end('Invalid request: need { pageId, months }');
@@ -867,7 +879,7 @@ const server = http.createServer(async (req, res) => {
         
                 <form
                     method="POST"
-                    action="/extend"
+                    action="/extend-expiry"
                     style="display:inline;"
                 >
         
@@ -891,7 +903,7 @@ const server = http.createServer(async (req, res) => {
         
                 <form
                     method="POST"
-                    action="/extend"
+                    action="/extend-expiry"
                     style="display:inline;"
                 >
         
@@ -915,7 +927,7 @@ const server = http.createServer(async (req, res) => {
         
                 <form
                     method="POST"
-                    action="/extend"
+                    action="/extend-expiry"
                     style="display:inline;"
                 >
         
