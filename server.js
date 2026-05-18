@@ -270,6 +270,7 @@ const server = http.createServer(async (req, res) => {
                     <input
                         type="number"
                         step="0.01"
+                        min="0"
                         name="price"
                         value="${price}"
                         required
