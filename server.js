@@ -256,6 +256,125 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+
+    const addMatch = url.pathname.match(/^\/admin\/(\d+)\/add$/);
+
+    if (req.method === 'POST' && addMatch) {
+    
+        const pageId = addMatch[1];
+    
+        const config = getPageConfig(pageId);
+    
+        if (
+            !checkAuth(
+                req,
+                config.password,
+                process.env.MASTER_PW
+            )
+        ) {
+            res.writeHead(401, {
+                'WWW-Authenticate': 'Basic realm="Admin Panel"'
+            });
+    
+            res.end('Unauthorized');
+    
+            return;
+        }
+    
+        let body = '';
+    
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+    
+        req.on('end', async () => {
+    
+            const params = new URLSearchParams(body);
+    
+            const code = params.get('code');
+    
+            const price = parseFloat(params.get('price'));
+    
+            const pageData = await getPageData(pageId);
+    
+            const prices = pageData?.prices || {};
+    
+            prices[code] = price;
+    
+            await savePrices(pageId, prices);
+    
+            res.writeHead(302, {
+                Location: `/admin/${pageId}`
+            });
+    
+            res.end();
+        });
+    
+        return;
+    }
+
+    
+
+
+
+
+
+
+    const deleteMatch = url.pathname.match(/^\/admin\/(\d+)\/delete$/);
+
+    if (req.method === 'POST' && deleteMatch) {
+    
+        const pageId = deleteMatch[1];
+    
+        const config = getPageConfig(pageId);
+    
+        if (
+            !checkAuth(
+                req,
+                config.password,
+                process.env.MASTER_PW
+            )
+        ) {
+            res.writeHead(401, {
+                'WWW-Authenticate': 'Basic realm="Admin Panel"'
+            });
+    
+            res.end('Unauthorized');
+    
+            return;
+        }
+    
+        let body = '';
+    
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+    
+        req.on('end', async () => {
+    
+            const params = new URLSearchParams(body);
+    
+            const code = params.get('code');
+    
+            const pageData = await getPageData(pageId);
+    
+            const prices = pageData?.prices || {};
+    
+            delete prices[code];
+    
+            await savePrices(pageId, prices);
+    
+            res.writeHead(302, {
+                Location: `/admin/${pageId}`
+            });
+    
+            res.end();
+        });
+    
+        return;
+    }
+
+    
     // Admin panel (POST)
     if (req.method === 'POST' && adminMatch) {
         const pageId = adminMatch[1];
