@@ -732,7 +732,21 @@ const server = http.createServer(async (req, res) => {
             </td>
         
             <td>
-                ${doc.subscriptionExpiry}
+            
+                <input
+                    type="datetime-local"
+            
+                    value="${
+                        new Date(
+                            doc.subscriptionExpiry
+                        )
+                        .toISOString()
+                        .slice(0, 16)
+                    }"
+            
+                    readonly
+                >
+            
             </td>
         
             <td>
