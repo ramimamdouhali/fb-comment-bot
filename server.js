@@ -348,7 +348,7 @@ const server = http.createServer(async (req, res) => {
             await savePrices(pageId, prices);
     
             res.writeHead(302, {
-                Location: `/admin/${pageId}`
+                Location: `/admin/${pageId}?success=added`
             });
     
             res.end();
@@ -409,7 +409,7 @@ const server = http.createServer(async (req, res) => {
             await savePrices(pageId, prices);
     
             res.writeHead(302, {
-                Location: `/admin/${pageId}`
+                Location: `/admin/${pageId}?success=deleted`
             });
     
             res.end();
