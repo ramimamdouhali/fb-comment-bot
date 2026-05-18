@@ -97,7 +97,15 @@
             font-size: 16px;
         }
 
-
+        .save-btn {
+            background: #2e7d32;
+            color: white;
+        }
+        
+        .cancel-btn {
+            background: #757575;
+            color: white;
+        }
 
         .flash {
             padding: 14px;
@@ -242,7 +250,41 @@
                     tbody.appendChild(row);
                 });        
             }
-        );        
+        );
+
+
+
+        function enableEdit(button) {
+            const row =
+                button.closest('tr');        
+            row.querySelector(
+                '.code-text'
+            ).style.display = 'none';        
+            row.querySelector(
+                '.price-text'
+            ).style.display = 'none';        
+            button.style.display = 'none';        
+            row.querySelector(
+                '.edit-form'
+            ).style.display = 'inline';
+        }
+        
+        function cancelEdit(button) {        
+            const row =
+                button.closest('tr');        
+            row.querySelector(
+                '.code-text'
+            ).style.display = '';        
+            row.querySelector(
+                '.price-text'
+            ).style.display = '';        
+            row.querySelector(
+                '.edit-btn'
+            ).style.display = '';        
+            row.querySelector(
+                '.edit-form'
+            ).style.display = 'none';
+        }        
     </script>
 </body>
 </html>
