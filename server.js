@@ -131,6 +131,31 @@ function checkAuth(req, ...validPasswords) {
     return validPasswords.includes(password);
 }
 
+function renderPage(
+    res,
+    filePath,
+    replacements = {}
+) {
+
+    let html = fs.readFileSync(
+        filePath,
+        'utf8'
+    );
+
+    for (const key in replacements) {
+
+        html = html.replaceAll(
+            `{{${key}}}`,
+            replacements[key]
+        );
+    }
+
+    res.writeHead(200, {
+        'Content-Type': 'text/html'
+    });
+
+    res.end(html);
+}
 
 
 // ---------- MongoDB operations ----------
@@ -215,10 +240,7 @@ const server = http.createServer(async (req, res) => {
         }    
         const pageData = await getPageData(pageId);    
         const prices = pageData?.prices || {};    
-        let html = fs.readFileSync(
-            './pages/admin.html',
-            'utf8'
-        );
+
         const success = url.searchParams.get('success');        
         const error = url.searchParams.get('error');        
         let flashMessage = '';
@@ -273,19 +295,18 @@ const server = http.createServer(async (req, res) => {
             </div>
             `;
         }
-        html = html.replace(
-            '{{FLASH_MESSAGE}}',
-            flashMessage
-        );        
-        html = html.replace('{{ROWS}}', rows);    
-        html = html.replaceAll(
-            '{{PAGE_ID}}',
-            pageId
-        );    
-        res.writeHead(200, {
-            'Content-Type': 'text/html'
-        });    
-        res.end(html);    
+
+
+        renderPage(
+            res,
+            './pages/admin.html',
+            {
+                FLASH_MESSAGE: flashMessage,
+                ROWS: rows,
+                PAGE_ID: pageId
+            }
+        );
+           
         return;
     }
 
@@ -413,45 +434,17 @@ const server = http.createServer(async (req, res) => {
         }
         
         const pages = await db.collection('pages').find().toArray();        
-        let html = fs.readFileSync('./pages/dashboard.html', 'utf8');        
-        const rows = pages.map(page => `
-        <tr>
-            <td>${page.pageId}</td>        
-            <td>
-                ${page.subscriptionExpiry
-                    ? new Date(page.subscriptionExpiry)
-                        .toISOString()
-                        .split('T')[0]
-                    : 'No expiry'}
-            </td>        
-            <td>        
-                <form method="POST" action="/dashboard/extend" style="display:inline;">
-                    <input type="hidden" name="pageId" value="${page.pageId}">
-                    <input type="hidden" name="months" value="1">
-                    <button class="small-btn" type="submit">
-                        +1 Month
-                    </button>
-                </form>        
-                <form method="POST" action="/dashboard/extend" style="display:inline;">
-                    <input type="hidden" name="pageId" value="${page.pageId}">
-                    <input type="hidden" name="months" value="3">
-                    <button class="small-btn" type="submit">
-                        +3 Months
-                    </button>
-                </form>        
-                <form method="POST" action="/dashboard/extend" style="display:inline;">
-                    <input type="hidden" name="pageId" value="${page.pageId}">
-                    <input type="hidden" name="months" value="12">
-                    <button class="small-btn" type="submit">
-                        +12 Months
-                    </button>
-                </form>        
-            </td>
-        </tr>
-        `).join('');        
-        html = html.replace('{{ROWS}}', rows);        
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end(html);
+
+
+        renderPage(
+            res,
+            './pages/dashboard.html',
+            {
+                ROWS: rows
+            }
+        );
+
+        
         return;
     }
 
@@ -557,16 +550,13 @@ const server = http.createServer(async (req, res) => {
     }
 
 
+   
     // ----- Privacy policy page -----
-    if (req.method === 'GET' && url.pathname === '/privacy') {
-        const html = fs.readFileSync(
-            './pages/privacy.html',
-            'utf8'
+    if (req.method === 'GET' && url.pathname === '/privacy') {    
+        renderPage(
+            res,
+            './pages/privacy.html'
         );    
-        res.writeHead(200, {
-            'Content-Type': 'text/html'
-        });    
-        res.end(html);    
         return;
     }
     res.writeHead(404);
