@@ -710,6 +710,81 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+
+
+
+        // Update expiry date (POST)
+    if (
+        req.method === 'POST'
+        &&
+        url.pathname === '/update-expiry'
+    ) {
+
+        const authHeader =
+            req.headers.authorization;
+
+        if (
+            !authHeader
+            ||
+            authHeader !==
+            `Bearer ${MASTER_PASSWORD}`
+        ) {
+
+            res.writeHead(401);
+
+            res.end('Unauthorized');
+
+            return;
+        }
+
+        let body = '';
+
+        req.on(
+            'data',
+            chunk => body += chunk
+        );
+
+        req.on(
+            'end',
+            async () => {
+
+                const params =
+                    new URLSearchParams(body);
+
+                const pageId =
+                    params.get('pageId');
+
+                const expiry =
+                    params.get('expiry');
+
+                await db
+                    .collection('pages')
+                    .updateOne(
+                        { pageId },
+                        {
+                            $set: {
+                                subscriptionExpiry:
+                                    new Date(expiry)
+                            }
+                        }
+                    );
+
+                res.writeHead(
+                    302,
+                    {
+                        Location:
+                        '/dashboard'
+                    }
+                );
+
+                res.end();
+            }
+        );
+
+        return;
+    }
+    
+
     // Dashboard (GET)
     if (req.method === 'GET' && url.pathname === '/dashboard') {
         const authHeader = req.headers.authorization;
