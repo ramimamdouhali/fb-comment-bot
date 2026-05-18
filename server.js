@@ -394,11 +394,41 @@ const server = http.createServer(async (req, res) => {
             try {
                 const newPrices = JSON.parse(pricesText);
                 await savePrices(pageId, newPrices);
-                res.writeHead(200, { 'Content-Type': 'text/html' });
-                res.end(`<h2>Prices saved! <a href="/admin/${pageId}">Go back</a></h2>`);
+                res.writeHead(200, { 'Content-Type': 'text/html' });               
+                let html = fs.readFileSync(
+                    './pages/success.html',
+                    'utf8'
+                );                
+                html = html.replace(
+                    '{{MESSAGE}}',
+                    'Prices saved successfully.'
+                );                
+                html = html.replace(
+                    '{{BACK_URL}}',
+                    `/admin/${pageId}`
+                );                
+                res.writeHead(200, {
+                    'Content-Type': 'text/html'
+                });                
+                res.end(html);                
             } catch (err) {
                 res.writeHead(400);
-                res.end('Invalid JSON');
+                let html = fs.readFileSync(
+                    './pages/error.html',
+                    'utf8'
+                );                
+                html = html.replace(
+                    '{{MESSAGE}}',
+                    'Invalid JSON format.'
+                );                
+                html = html.replace(
+                    '{{BACK_URL}}',
+                    `/admin/${pageId}`
+                );                
+                res.writeHead(400, {
+                    'Content-Type': 'text/html'
+                });                
+                res.end(html);
             }
         });
         return;
