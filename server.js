@@ -722,8 +722,17 @@ const server = http.createServer(async (req, res) => {
             .collection('pages')
             .find()
             .toArray();
+                
+        const rows = docs.map(doc => {
         
-        const rows = docs.map(doc => `
+            const expiryDate =
+                new Date(
+                    doc.subscriptionExpiry
+                )
+                .toISOString()
+                .split('T')[0];
+        
+            return `
         
         <tr>
         
@@ -732,21 +741,51 @@ const server = http.createServer(async (req, res) => {
             </td>
         
             <td>
-            
+        
                 <input
                     type="date"
-            
-                    value="${
-                        new Date(
-                            doc.subscriptionExpiry
-                        )
-                        .toISOString()
-                        .split('T')[0]
-                    }"
-            
+        
                     class="expiry-input"
+        
+                    value="${expiryDate}"
+        
+                    data-original="${expiryDate}"
+        
+                    onchange="toggleSaveButton(this)"
                 >
-            
+        
+            </td>
+        
+            <td>
+        
+                <form
+                    method="POST"
+                    action="/update-expiry"
+                >
+        
+                    <input
+                        type="hidden"
+                        name="pageId"
+                        value="${doc.pageId}"
+                    >
+        
+                    <input
+                        type="hidden"
+                        name="expiry"
+                        class="expiry-hidden"
+                        value="${expiryDate}"
+                    >
+        
+                    <button
+                        type="submit"
+                        class="save-date-btn"
+                        disabled
+                    >
+                        Save Date
+                    </button>
+        
+                </form>
+        
             </td>
         
             <td>
@@ -827,7 +866,9 @@ const server = http.createServer(async (req, res) => {
         
         </tr>
         
-        `).join('');     
+        `;
+        
+        }).join('');     
 
 
         renderPage(
