@@ -188,7 +188,7 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    // Admin panel for price editing (GET)
+    
     // Admin panel for price editing (GET)
     const adminMatch = url.pathname.match(/^\/admin\/(\d+)$/);    
     if (req.method === 'GET' && adminMatch) {    
@@ -203,7 +203,8 @@ const server = http.createServer(async (req, res) => {
             !checkAuth(
                 req,
                 config.password,
-                process.env.MASTER_PW
+                MASTER_PASSWORD
+                
             )
         ) {
             res.writeHead(401, {
@@ -313,7 +314,7 @@ const server = http.createServer(async (req, res) => {
             !checkAuth(
                 req,
                 config.password,
-                process.env.MASTER_PW
+                MASTER_PASSWORD
             )
         ) {
             res.writeHead(401, {
@@ -376,7 +377,7 @@ const server = http.createServer(async (req, res) => {
             !checkAuth(
                 req,
                 config.password,
-                process.env.MASTER_PW
+                MASTER_PASSWORD
             )
         ) {
             res.writeHead(401, {
@@ -420,48 +421,7 @@ const server = http.createServer(async (req, res) => {
 
     
     // Admin panel (POST)
-    if (req.method === 'POST' && adminMatch) {
-        const pageId = adminMatch[1];
-        const config = getPageConfig(pageId);
-        if (!config) { res.writeHead(404); res.end('Page not configured'); return; }
-        if (!checkAuth(req, config.password, process.env.MASTER_PW))
-            {
-            res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Admin Panel"' });
-            res.end('Unauthorized');
-            return;
-            }
-        let body = '';
-        req.on('data', chunk => body += chunk);
-        req.on('end', async () => {
-            const params = new URLSearchParams(body);
-            const pricesText = params.get('prices');
-            try {
-                const newPrices = JSON.parse(pricesText);
-                await savePrices(pageId, newPrices);
-                res.writeHead(200, { 'Content-Type': 'text/html' });               
-              
-                res.writeHead(200, {
-                    'Content-Type': 'text/html'
-                });                
-                res.writeHead(302, {
-                    Location:
-                        `/admin/${pageId}?success=added`
-                });
-                
-                res.end();
-                
-            }catch (err) {
 
-                res.writeHead(302, {
-                    Location:
-                        `/admin/${pageId}?error=invalid`
-                });
-            
-                res.end();
-            } 
-        });
-        return;
-    }
 
     // Secret endpoint for extension (POST)
     if (req.method === 'POST' && url.pathname === '/extend-expiry') {
@@ -500,21 +460,6 @@ const server = http.createServer(async (req, res) => {
             res.writeHead(401, { 'WWW-Authenticate': 'Bearer realm="Dashboard"' });
             res.end('Unauthorized');
             return;
-        }
-        let pageIdsFromDB = [];
-        if (db) {
-            const docs = await db.collection('pages').find({}, { projection: { pageId: 1 } }).toArray();
-            pageIdsFromDB = [...new Set(docs.map(d => d.pageId))];
-        }
-        const extraPageIds = process.env.PAGE_IDS_LIST ? process.env.PAGE_IDS_LIST.split(',') : [];
-        const allPageIds = [...new Set([...pageIdsFromDB, ...extraPageIds])];
-        const pagesData = [];
-        for (const pageId of allPageIds) {
-            const doc = await db.collection('pages').findOne({ pageId });
-            pagesData.push({
-                pageId,
-                expiry: doc?.subscriptionExpiry ? new Date(doc.subscriptionExpiry).toISOString().slice(0,10) : 'No expiry (active)'
-            });
         }
 
 
@@ -627,7 +572,8 @@ const server = http.createServer(async (req, res) => {
                                 const comment = change.value;
                                 const commentId = comment.comment_id || comment.id;
                                 const postId = comment.post_id;
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                                // Ignore self-comments and duplicate comments
+
                                 const commenterId = comment.from?.id;
                                 if (commenterId === pageId) {
                                     console.log(`Ignoring page self-comment: ${commentId}`);
@@ -638,7 +584,7 @@ const server = http.createServer(async (req, res) => {
                                     continue;
                                     }
                                 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////                               
+                                // Process valid comments                               
                                 console.log(`🆔 commentId: ${commentId}, postId: ${postId}`);
                                 if (postId && commentId) {
                                     sendPublicReply(commentId, config.token);
