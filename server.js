@@ -447,9 +447,8 @@ const server = http.createServer(async (req, res) => {
             {
                 FLASH_MESSAGE: flashMessage,
                 ROWS: rows,
-                PAGE_ID: pageId
-                SUBSCRIPTION_INFO:
-                    subscriptionInfo,
+                PAGE_ID: pageId,
+                SUBSCRIPTION_INFO: subscriptionInfo,
             }
         );
            
