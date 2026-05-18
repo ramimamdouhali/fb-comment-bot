@@ -84,6 +84,25 @@
             color: #1877f2;
         }
 
+
+
+        .flash {
+            padding: 14px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .flash.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .flash.error {
+            background: #f8d7da;
+            color: #721c24;
+        }        
+
     </style>
 
 </head>
@@ -93,6 +112,7 @@
 <div class="container">
 
     <h1>📦 Product Manager</h1>
+    {{FLASH_MESSAGE}}
 
     <table>
 
