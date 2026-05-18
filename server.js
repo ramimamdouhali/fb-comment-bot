@@ -243,7 +243,7 @@ const server = http.createServer(async (req, res) => {
 
         const expiryDate =
             new Date(
-                config.subscriptionExpiry
+                pageData?.subscriptionExpiry
             );
         
         const now = new Date();
@@ -286,7 +286,7 @@ const server = http.createServer(async (req, res) => {
                 Subscription Expiry:
             </strong>
         
-            ${config.subscriptionExpiry}
+            ${pageData?.subscriptionExpiry}
         
             <br>
         
