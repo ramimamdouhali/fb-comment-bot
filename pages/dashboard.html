@@ -82,6 +82,18 @@
             background: #f9f9f9;
         }
 
+        .expiry-input {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        
+        .save-date-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+
     </style>
 </head>
 
@@ -127,6 +139,44 @@
     </div>
 
 </div>
+
+
+
+<script>
+
+function toggleSaveButton(input) {
+
+    const row =
+        input.closest('tr');
+
+    const saveButton =
+        row.querySelector(
+            '.save-date-btn'
+        );
+
+    const hiddenInput =
+        row.querySelector(
+            '.expiry-hidden'
+        );
+
+    hiddenInput.value =
+        input.value;
+
+    if (
+        input.value !==
+        input.dataset.original
+    ) {
+
+        saveButton.disabled = false;
+
+    } else {
+
+        saveButton.disabled = true;
+    }
+}
+
+</script>
+    
 
 </body>
 </html>
