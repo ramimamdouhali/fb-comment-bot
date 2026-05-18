@@ -711,8 +711,18 @@ const server = http.createServer(async (req, res) => {
                     return;
                 }
                 const newExpiry = await extendSubscription(pageId, months);
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ status: 'ok', newExpiry }));
+                //res.writeHead(200, { 'Content-Type': 'application/json' });
+                //res.end(JSON.stringify({ status: 'ok', newExpiry }));
+                
+                res.writeHead(
+                    302,
+                    {
+                        Location:
+                            '/dashboard'
+                    }
+                );                
+                res.end();
+                
             } catch (err) {
                 console.error(err);
                 res.writeHead(500);
