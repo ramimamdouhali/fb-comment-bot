@@ -253,42 +253,30 @@ const server = http.createServer(async (req, res) => {
 
 
         if (success === 'added') {
-
             flashMessage = `
             <div class="flash success">
                 ✅ Product added successfully
             </div>
             `;
-        }
-        
-        if (success === 'deleted') {
-        
+        }        
+        if (success === 'deleted') {        
             flashMessage = `
             <div class="flash success">
                 🗑️ Product deleted successfully
             </div>
             `;
-        }
-        
-        if (error === 'invalid') {
-        
+        }        
+        if (error === 'invalid') {        
             flashMessage = `
             <div class="flash error">
                 ❌ Invalid data
             </div>
             `;
         }
-
-
         html = html.replace(
             '{{FLASH_MESSAGE}}',
             flashMessage
-        );
-        
-
-        
-        
-        
+        );        
         html = html.replace('{{ROWS}}', rows);    
         html = html.replaceAll(
             '{{PAGE_ID}}',
@@ -303,13 +291,9 @@ const server = http.createServer(async (req, res) => {
 
 
     const addMatch = url.pathname.match(/^\/admin\/(\d+)\/add$/);
-
-    if (req.method === 'POST' && addMatch) {
-    
-        const pageId = addMatch[1];
-    
-        const config = getPageConfig(pageId);
-    
+    if (req.method === 'POST' && addMatch) {    
+        const pageId = addMatch[1];    
+        const config = getPageConfig(pageId);    
         if (
             !checkAuth(
                 req,
@@ -319,42 +303,27 @@ const server = http.createServer(async (req, res) => {
         ) {
             res.writeHead(401, {
                 'WWW-Authenticate': 'Basic realm="Admin Panel"'
-            });
-    
-            res.end('Unauthorized');
-    
+            });    
+            res.end('Unauthorized');    
             return;
-        }
-    
-        let body = '';
-    
+        }    
+        let body = '';    
         req.on('data', chunk => {
             body += chunk.toString();
-        });
-    
-        req.on('end', async () => {
-    
-            const params = new URLSearchParams(body);
-    
-            const code = params.get('code');
-    
-            const price = parseFloat(params.get('price'));
-    
-            const pageData = await getPageData(pageId);
-    
-            const prices = pageData?.prices || {};
-    
-            prices[code] = price;
-    
-            await savePrices(pageId, prices);
-    
+        });    
+        req.on('end', async () => {    
+            const params = new URLSearchParams(body);    
+            const code = params.get('code');    
+            const price = parseFloat(params.get('price'));    
+            const pageData = await getPageData(pageId);    
+            const prices = pageData?.prices || {};    
+            prices[code] = price;    
+            await savePrices(pageId, prices);    
             res.writeHead(302, {
                 Location: `/admin/${pageId}?success=added`
-            });
-    
+            });    
             res.end();
-        });
-    
+        });    
         return;
     }
 
@@ -366,13 +335,9 @@ const server = http.createServer(async (req, res) => {
 
 
     const deleteMatch = url.pathname.match(/^\/admin\/(\d+)\/delete$/);
-
-    if (req.method === 'POST' && deleteMatch) {
-    
-        const pageId = deleteMatch[1];
-    
-        const config = getPageConfig(pageId);
-    
+    if (req.method === 'POST' && deleteMatch) {    
+        const pageId = deleteMatch[1];    
+        const config = getPageConfig(pageId);    
         if (
             !checkAuth(
                 req,
@@ -382,47 +347,32 @@ const server = http.createServer(async (req, res) => {
         ) {
             res.writeHead(401, {
                 'WWW-Authenticate': 'Basic realm="Admin Panel"'
-            });
-    
-            res.end('Unauthorized');
-    
+            });    
+            res.end('Unauthorized');    
             return;
         }
     
-        let body = '';
-    
+        let body = '';    
         req.on('data', chunk => {
             body += chunk.toString();
-        });
-    
-        req.on('end', async () => {
-    
-            const params = new URLSearchParams(body);
-    
-            const code = params.get('code');
-    
-            const pageData = await getPageData(pageId);
-    
-            const prices = pageData?.prices || {};
-    
-            delete prices[code];
-    
-            await savePrices(pageId, prices);
-    
+        });    
+        req.on('end', async () => {    
+            const params = new URLSearchParams(body);    
+            const code = params.get('code');    
+            const pageData = await getPageData(pageId);    
+            const prices = pageData?.prices || {};    
+            delete prices[code];    
+            await savePrices(pageId, prices);    
             res.writeHead(302, {
                 Location: `/admin/${pageId}?success=deleted`
-            });
-    
+            });    
             res.end();
-        });
-    
+        });    
         return;
     }
 
     
     // Admin panel (POST)
-
-
     // Secret endpoint for extension (POST)
     if (req.method === 'POST' && url.pathname === '/extend-expiry') {
         const authHeader = req.headers.authorization;
@@ -461,83 +411,52 @@ const server = http.createServer(async (req, res) => {
             res.end('Unauthorized');
             return;
         }
-
-
-
-
-
-
         
-        const pages = await db.collection('pages').find().toArray();
-        
-        let html = fs.readFileSync('./pages/dashboard.html', 'utf8');
-        
+        const pages = await db.collection('pages').find().toArray();        
+        let html = fs.readFileSync('./pages/dashboard.html', 'utf8');        
         const rows = pages.map(page => `
         <tr>
-            <td>${page.pageId}</td>
-        
+            <td>${page.pageId}</td>        
             <td>
                 ${page.subscriptionExpiry
                     ? new Date(page.subscriptionExpiry)
                         .toISOString()
                         .split('T')[0]
                     : 'No expiry'}
-            </td>
-        
-            <td>
-        
+            </td>        
+            <td>        
                 <form method="POST" action="/dashboard/extend" style="display:inline;">
                     <input type="hidden" name="pageId" value="${page.pageId}">
                     <input type="hidden" name="months" value="1">
                     <button class="small-btn" type="submit">
                         +1 Month
                     </button>
-                </form>
-        
+                </form>        
                 <form method="POST" action="/dashboard/extend" style="display:inline;">
                     <input type="hidden" name="pageId" value="${page.pageId}">
                     <input type="hidden" name="months" value="3">
                     <button class="small-btn" type="submit">
                         +3 Months
                     </button>
-                </form>
-        
+                </form>        
                 <form method="POST" action="/dashboard/extend" style="display:inline;">
                     <input type="hidden" name="pageId" value="${page.pageId}">
                     <input type="hidden" name="months" value="12">
                     <button class="small-btn" type="submit">
                         +12 Months
                     </button>
-                </form>
-        
+                </form>        
             </td>
         </tr>
-        `).join('');
-        
-        html = html.replace('{{ROWS}}', rows);
-        
-
-        
-
-
-
-
-        
-        
+        `).join('');        
+        html = html.replace('{{ROWS}}', rows);        
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.end(html);
         return;
     }
 
-
-
-
-
-
-
-
-        // ----- Receive comment events (POST) -----
-   
+    
+        // ----- Receive comment events (POST) -----   
     if (req.method === 'POST' && url.pathname === '/webhook') {
         console.log('📨 POST /webhook received');  // <-- debug
         let body = '';
@@ -617,8 +536,6 @@ const server = http.createServer(async (req, res) => {
                                                     } catch (err) {
                                                     console.error('notifyPageOwner failed:', err);
                                                     }
-                                            
-                                             
                                         }
                                     });
                                 } else {
@@ -640,16 +557,6 @@ const server = http.createServer(async (req, res) => {
     }
 
 
-    
-
-
-    
-
-
-
-
-
-
     // ----- Privacy policy page -----
     if (req.method === 'GET' && url.pathname === '/privacy') {
         const html = fs.readFileSync(
@@ -662,13 +569,10 @@ const server = http.createServer(async (req, res) => {
         res.end(html);    
         return;
     }
-
-
-
-
     res.writeHead(404);
     res.end('Not found');
 });
+
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
