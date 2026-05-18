@@ -244,14 +244,7 @@ const server = http.createServer(async (req, res) => {
         const expiryDate =
             new Date(
                 pageData?.subscriptionExpiry
-                ).toLocaleDateString(
-        'en-GB',
-        {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric'
-        }
-    );
+                );
         
         const now = new Date();
         
