@@ -119,15 +119,19 @@ function notifyPageOwner(pageId, message) {
 
 
 // ---------- HTTP Basic Auth ----------
-function checkAuth(req, expectedPassword) {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) return false;
-    const [scheme, encoded] = authHeader.split(' ');
-    if (scheme !== 'Basic' || !encoded) return false;
-    const decoded = Buffer.from(encoded, 'base64').toString();
-    const [, password] = decoded.split(':');
-    return password === expectedPassword;
+function checkAuth(req, ...validPasswords) {
+    const auth = req.headers.authorization;
+    if (!auth || !auth.startsWith('Basic ')) {
+        return false;
+    }
+    const credentials = Buffer
+        .from(auth.split(' ')[1], 'base64')
+        .toString();
+    const [, password] = credentials.split(':');
+    return validPasswords.includes(password);
 }
+
+
 
 // ---------- MongoDB operations ----------
 async function getPageData(pageId) {
@@ -190,13 +194,12 @@ const server = http.createServer(async (req, res) => {
         const pageId = adminMatch[1];
         const config = getPageConfig(pageId);
         if (!config) { res.writeHead(404); res.end('Page not configured'); return; }
-        if (!checkAuth(req, config.password)) &&
-            !checkAuth(req, process.env.MASTER_PW)
-        ) {
-            res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Admin Panel"' });
-            res.end('Unauthorized');
-            return;
-        }
+        if (!checkAuth(req, config.password, process.env.MASTER_PW))
+            {
+                res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Admin Panel"' });
+                res.end('Unauthorized');
+                return;
+            }
         const pageData = await getPageData(pageId);
         const prices = pageData?.prices || {};        
         let html = fs.readFileSync('./pages/admin.html', 'utf8');
@@ -212,13 +215,12 @@ const server = http.createServer(async (req, res) => {
         const pageId = adminMatch[1];
         const config = getPageConfig(pageId);
         if (!config) { res.writeHead(404); res.end('Page not configured'); return; }
-        if (!checkAuth(req, config.password)) &&
-            !checkAuth(req, process.env.MASTER_PW)
-        ) {
+        if (!checkAuth(req, config.password, process.env.MASTER_PW))
+            {
             res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Admin Panel"' });
             res.end('Unauthorized');
             return;
-        }
+            }
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', async () => {
