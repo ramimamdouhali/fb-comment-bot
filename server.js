@@ -246,33 +246,63 @@ const server = http.createServer(async (req, res) => {
         let flashMessage = '';
         
         const rows = Object.entries(prices)
-        .map(([code, price]) => `    
-    <tr>
-        <td>${code}</td>    
-        <td>$${price}</td>    
-        <td>    
+        .map(([code, price]) => `
+        
+        <tr>        
             <form
                 method="POST"
-                action="/admin/${pageId}/delete"
-                style="display:inline;"
-            >    
-                <input
-                    type="hidden"
-                    name="code"
-                    value="${code}"
-                >    
-                <button
-                    class="delete-btn"
-                    type="submit"
-                >
-                    Delete
-                </button>    
-            </form>    
-        </td>
-    </tr>    
-    `).join('');  
-
-
+                action="/admin/${pageId}/edit"
+            >        
+                <td>        
+                    <input
+                        type="hidden"
+                        name="oldCode"
+                        value="${code}"
+                    >        
+                    <input
+                        type="text"
+                        name="code"
+                        value="${code}"
+                        required
+                    >        
+                </td>        
+                <td>        
+                    <input
+                        type="number"
+                        step="0.01"
+                        name="price"
+                        value="${price}"
+                        required
+                    >        
+                </td>        
+                <td>        
+                    <button
+                        class="edit-btn"
+                        type="submit"
+                    >
+                        Save
+                    </button>        
+            </form>        
+                    <form
+                        method="POST"
+                        action="/admin/${pageId}/delete"
+                        style="display:inline;"
+                    >        
+                        <input
+                            type="hidden"
+                            name="code"
+                            value="${code}"
+                        >        
+                        <button
+                            class="delete-btn"
+                            type="submit"
+                        >
+                            Delete
+                        </button>        
+                    </form>        
+                </td>        
+        </tr>        
+        `).join('');  
 
         if (success === 'added') {
             flashMessage = `
@@ -280,7 +310,16 @@ const server = http.createServer(async (req, res) => {
                 ✅ Product added successfully
             </div>
             `;
-        }        
+        }
+
+        if (success === 'edited') {
+            flashMessage = `
+            <div class="flash success">
+                ✏️ Product updated successfully
+            </div>
+            `;
+        }
+        
         if (success === 'deleted') {        
             flashMessage = `
             <div class="flash success">
@@ -295,7 +334,6 @@ const server = http.createServer(async (req, res) => {
             </div>
             `;
         }
-
 
         renderPage(
             res,
@@ -353,7 +391,107 @@ const server = http.createServer(async (req, res) => {
 
 
 
-
+    // EDIT ROUTE
+    const editMatch = url.pathname.match(
+        /^\/admin\/(\d+)\/edit$/
+    );
+    
+    if (
+        req.method === 'POST'
+        && editMatch
+    ) {
+    
+        const pageId = editMatch[1];
+    
+        const config = getPageConfig(pageId);
+    
+        if (!config) {
+    
+            res.writeHead(404);
+    
+            res.end('Page not configured');
+    
+            return;
+        }
+    
+        if (
+            !checkAuth(req, config.password)
+            && !checkAuth(req, MASTER_PASSWORD)
+        ) {
+    
+            res.writeHead(401, {
+                'WWW-Authenticate':
+                    'Basic realm="Admin Panel"'
+            });
+    
+            res.end('Unauthorized');
+    
+            return;
+        }
+    
+        let body = '';
+    
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+    
+        req.on('end', async () => {
+    
+            const params =
+                new URLSearchParams(body);
+    
+            const oldCode =
+                params.get('oldCode');
+    
+            const newCode =
+                params.get('code');
+    
+            const newPrice =
+                parseFloat(params.get('price'));
+    
+            if (
+                !oldCode
+                || !newCode
+                || isNaN(newPrice)
+            ) {
+    
+                res.writeHead(302, {
+                    Location:
+                        `/admin/${pageId}?error=invalid`
+                });
+    
+                res.end();
+    
+                return;
+            }
+    
+            const pageData =
+                await getPageData(pageId);
+    
+            const prices =
+                pageData?.prices || {};
+    
+            delete prices[oldCode];
+    
+            prices[newCode] = newPrice;
+    
+            await savePrices(
+                pageId,
+                prices
+            );
+    
+            res.writeHead(302, {
+                Location:
+                    `/admin/${pageId}?success=edited`
+            });
+    
+            res.end();
+    
+        });
+    
+        return;
+    }
+    
 
     const deleteMatch = url.pathname.match(/^\/admin\/(\d+)\/delete$/);
     if (req.method === 'POST' && deleteMatch) {    
