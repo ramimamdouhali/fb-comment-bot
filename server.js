@@ -712,9 +712,6 @@ const server = http.createServer(async (req, res) => {
         renderPage(
             res,
             './pages/dashboard.html',
-            {
-                ROWS: rows
-            }
         );
 
         
