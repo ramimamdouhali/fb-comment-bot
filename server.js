@@ -334,6 +334,14 @@ const server = http.createServer(async (req, res) => {
             </div>
             `;
         }
+        if (error === 'duplicate') {        
+            flashMessage = `
+            <div class="flash error">
+                ⚠️ Product code already exists
+            </div>
+            `;
+        }
+        
 
         renderPage(
             res,
@@ -375,7 +383,16 @@ const server = http.createServer(async (req, res) => {
             const code = params.get('code');    
             const price = parseFloat(params.get('price'));    
             const pageData = await getPageData(pageId);    
-            const prices = pageData?.prices || {};    
+            const prices = pageData?.prices || {};
+
+            if (prices[code]) {
+                res.writeHead(302, {
+                    Location:
+                        `/admin/${pageId}?error=duplicate`
+                });            
+                res.end();            
+                return;
+            }
             prices[code] = price;    
             await savePrices(pageId, prices);    
             res.writeHead(302, {
@@ -452,7 +469,9 @@ const server = http.createServer(async (req, res) => {
             if (
                 !oldCode
                 || !newCode
+                || !newCode.trim()
                 || isNaN(newPrice)
+                || newPrice < 0
             ) {
     
                 res.writeHead(302, {
@@ -470,7 +489,24 @@ const server = http.createServer(async (req, res) => {
     
             const prices =
                 pageData?.prices || {};
-    
+
+
+            if (
+                oldCode !== newCode
+                && prices[newCode]
+            ) {
+            
+                res.writeHead(302, {
+                    Location:
+                        `/admin/${pageId}?error=duplicate`
+                });
+            
+                res.end();
+            
+                return;
+            }
+
+            
             delete prices[oldCode];
     
             prices[newCode] = newPrice;
