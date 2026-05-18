@@ -288,6 +288,11 @@ const server = http.createServer(async (req, res) => {
                         method="POST"
                         action="/admin/${pageId}/delete"
                         style="display:inline;"
+                        onsubmit="
+                            return confirm(
+                                'Delete product ${code}?'
+                            );
+                        "
                     >        
                         <input
                             type="hidden"
