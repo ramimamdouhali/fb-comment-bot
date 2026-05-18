@@ -217,7 +217,11 @@ const server = http.createServer(async (req, res) => {
         let html = fs.readFileSync(
             './pages/admin.html',
             'utf8'
-        );    
+        );
+        const success = url.searchParams.get('success');        
+        const error = url.searchParams.get('error');        
+        let flashMessage = '';
+        
         const rows = Object.entries(prices)
         .map(([code, price]) => `    
     <tr>
@@ -243,7 +247,47 @@ const server = http.createServer(async (req, res) => {
             </form>    
         </td>
     </tr>    
-    `).join('');    
+    `).join('');  
+
+
+
+        if (success === 'added') {
+
+            flashMessage = `
+            <div class="flash success">
+                ✅ Product added successfully
+            </div>
+            `;
+        }
+        
+        if (success === 'deleted') {
+        
+            flashMessage = `
+            <div class="flash success">
+                🗑️ Product deleted successfully
+            </div>
+            `;
+        }
+        
+        if (error === 'invalid') {
+        
+            flashMessage = `
+            <div class="flash error">
+                ❌ Invalid data
+            </div>
+            `;
+        }
+
+
+        html = html.replace(
+            '{{FLASH_MESSAGE}}',
+            flashMessage
+        );
+        
+
+        
+        
+        
         html = html.replace('{{ROWS}}', rows);    
         html = html.replaceAll(
             '{{PAGE_ID}}',
