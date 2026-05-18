@@ -286,7 +286,16 @@ const server = http.createServer(async (req, res) => {
                 Subscription Expiry:
             </strong>
         
-            ${pageData?.subscriptionExpiry}
+            ${new Date(
+                pageData?.subscriptionExpiry
+            ).toLocaleDateString(
+                'en-GB',
+                {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                }
+            )}
         
             <br>
         
