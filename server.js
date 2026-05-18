@@ -450,25 +450,15 @@ const server = http.createServer(async (req, res) => {
                 
                 res.end();
                 
-            } catch (err) {
-                res.writeHead(400);
-                let html = fs.readFileSync(
-                    './pages/error.html',
-                    'utf8'
-                );                
-                html = html.replace(
-                    '{{MESSAGE}}',
-                    'Invalid JSON format.'
-                );                
-                html = html.replace(
-                    '{{BACK_URL}}',
-                    `/admin/${pageId}`
-                );                
-                res.writeHead(400, {
-                    'Content-Type': 'text/html'
-                });                
-                res.end(html);
-            }
+            }catch (err) {
+
+                res.writeHead(302, {
+                    Location:
+                        `/admin/${pageId}?error=invalid`
+                });
+            
+                res.end();
+            } 
         });
         return;
     }
