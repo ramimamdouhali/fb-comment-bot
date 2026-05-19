@@ -62,6 +62,7 @@ connectDB().catch(err => { console.error("DB connection failed:", err); process.
 
 // ---------- HTTP Server ----------
 const server = http.createServer(async (req, res) => {
+    const db = getDB();
     const url = new URL(req.url, `http://${req.headers.host}`);
 
     // Webhook verification (GET)
