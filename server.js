@@ -1293,9 +1293,9 @@ const server = http.createServer(async (req, res) => {
         
             </td>
         
-            <td>    
-                ${renderExtendButtons(doc.pageId)}        
-            </td>
+                
+            ${renderExtendButtons(doc.pageId)}        
+            
         
         </tr>
         
