@@ -1173,12 +1173,59 @@ const server = http.createServer(async (req, res) => {
                 
         const rows = docs.map(doc => {
         
-            const expiryDate =
+            const expiry =
                 new Date(
                     doc.subscriptionExpiry
-                )
-                .toISOString()
-                .split('T')[0];
+                );
+            
+            const expiryDate =
+                expiry
+                    .toISOString()
+                    .split('T')[0];
+            
+            const now =
+                new Date();
+            
+            const diffMs =
+                expiry - now;
+            
+            const daysRemaining =
+                Math.ceil(
+                    diffMs
+                    /
+                    (
+                        1000
+                        * 60
+                        * 60
+                        * 24
+                    )
+                );
+            
+            let statusClass =
+                'status-safe';
+            
+            let statusText =
+                `${daysRemaining} days left`;
+            
+            if (
+                daysRemaining <= 7
+            ) {
+            
+                statusClass =
+                    'status-warning';
+            }
+            
+            if (
+                daysRemaining <= 0
+            ) {
+            
+                statusClass =
+                    'status-expired';
+            
+                statusText =
+                    'Expired';
+            }
+            
         
             return `
         
@@ -1188,7 +1235,7 @@ const server = http.createServer(async (req, res) => {
                 ${doc.pageId}
             </td>
         
-            <td>
+            <td class="${statusClass}">
         
                 <input
                     type="date"
@@ -1201,6 +1248,11 @@ const server = http.createServer(async (req, res) => {
         
                     onchange="toggleSaveButton(this)"
                 >
+                <br>
+
+                <small>
+                    ${statusText}
+                </small>
         
             </td>
         
