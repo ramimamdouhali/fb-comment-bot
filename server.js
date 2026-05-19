@@ -1,5 +1,5 @@
 const http = require('http');
-const { MongoClient } = require('mongodb');
+
 const processedComments = new Set();
 const {
     renderPage,
@@ -29,6 +29,16 @@ const {
     './services/facebook'
 );
 
+const {
+    connectDB,
+    getDB,
+    getPageData,
+    savePrices
+} = require(
+    './services/database'
+);
+
+
 
 
 // ---------- Environment Variables ----------
@@ -42,7 +52,7 @@ if (!VERIFY_TOKEN || !MASTER_PASSWORD || !MONGODB_URI) {
 }
 
 // ---------- MongoDB Connection ----------
-let db;
+
 connectDB().catch(err => { console.error("DB connection failed:", err); process.exit(1); });
 
 
