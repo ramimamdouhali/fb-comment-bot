@@ -1208,7 +1208,7 @@ const server = http.createServer(async (req, res) => {
                 'status-safe';
             
             let statusText =
-                `${daysRemaining} days left`;
+                `🟢 ${daysRemaining} days left`;
             
             if (
                 daysRemaining <= 7
@@ -1216,6 +1216,8 @@ const server = http.createServer(async (req, res) => {
             
                 statusClass =
                     'status-warning';
+                statusText =
+                    `🟠 ${daysRemaining} days left`;
             }
             
             if (
@@ -1224,12 +1226,9 @@ const server = http.createServer(async (req, res) => {
             
                 statusClass =
                     'status-expired';
-            
                 statusText =
-                    'Expired';
-            }
-            
-        
+                    '🔴 Expired';
+            }        
             return `
         
         <tr>
