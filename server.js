@@ -682,7 +682,16 @@ const server = http.createServer(async (req, res) => {
                 🗑️ Product deleted successfully
             </div>
             `;
-        }        
+        }
+
+        if (success === 'replies') {
+            flashMessage = `
+                <div class="flash success">
+                    💬 Replies updated successfully
+                </div>
+            `;
+        }
+        
         if (error === 'invalid') {        
             flashMessage = `
             <div class="flash error">
@@ -923,6 +932,102 @@ const server = http.createServer(async (req, res) => {
         });    
         return;
     }
+
+
+    const repliesMatch =
+        url.pathname.match(
+            /^\/admin\/(\d+)\/replies$/
+        );
+    
+    if (
+        req.method === 'POST'
+        &&
+        repliesMatch
+    ) {
+    
+        const pageId =
+            repliesMatch[1];
+    
+        const config =
+            getPageConfig(pageId);
+    
+        if (
+            !checkAuth(
+                req,
+                config.password,
+                MASTER_PASSWORD
+            )
+        ) {
+    
+            res.writeHead(
+                401,
+                {
+                    'WWW-Authenticate':
+                    'Basic realm="Admin Panel"'
+                }
+            );
+    
+            res.end('Unauthorized');
+    
+            return;
+        }
+    
+        let body = '';
+    
+        req.on(
+            'data',
+            chunk => {
+                body += chunk.toString();
+            }
+        );
+    
+        req.on(
+            'end',
+            async () => {
+    
+                const params =
+                    new URLSearchParams(body);
+    
+                const publicReplies =
+                    params
+                        .get('publicReplies')
+    
+                        .split('\n')
+    
+                        .map(
+                            r => r.trim()
+                        )
+    
+                        .filter(Boolean);
+    
+                await db
+                    .collection('pages')
+                    .updateOne(
+                        { pageId },
+    
+                        {
+                            $set: {
+                                publicReplies
+                            }
+                        }
+                    );
+    
+                res.writeHead(
+                    302,
+                    {
+                        Location:
+                            `/admin/${pageId}?success=replies`
+                    }
+                );
+    
+                res.end();
+            }
+        );
+    
+        return;
+    }
+
+    
 
     
     // Admin panel (POST)
