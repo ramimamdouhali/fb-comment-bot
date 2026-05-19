@@ -572,7 +572,91 @@ async function handleAdminPanel(
 
 
 
-
+    function handleRepliesUpdate(
+        req,
+        res,
+        pageId,
+        MASTER_PASSWORD
+    ) {
+    
+        const config =
+            getPageConfig(pageId);
+    
+        if (
+            !checkAuth(
+                req,
+                config.password,
+                MASTER_PASSWORD
+            )
+        ) {
+    
+            res.writeHead(
+                401,
+                {
+                    'WWW-Authenticate':
+                        'Basic realm="Admin Panel"'
+                }
+            );
+    
+            res.end('Unauthorized');
+    
+            return;
+        }
+    
+        let body = '';
+    
+        req.on(
+            'data',
+            chunk => {
+                body += chunk.toString();
+            }
+        );
+    
+        req.on(
+            'end',
+            async () => {
+    
+                const params =
+                    new URLSearchParams(body);
+    
+                const publicReplies =
+                    params
+                        .get('publicReplies')
+    
+                        .split('\n')
+    
+                        .map(
+                            r => r.trim()
+                        )
+    
+                        .filter(Boolean);
+    
+                const db = getDB();
+    
+                await db
+                    .collection('pages')
+                    .updateOne(
+                        { pageId },
+    
+                        {
+                            $set: {
+                                publicReplies
+                            }
+                        }
+                    );
+    
+                res.writeHead(
+                    302,
+                    {
+                        Location:
+                            `/admin/${pageId}?success=replies`
+                    }
+                );
+    
+                res.end();
+            }
+        );
+    }
 
 
 
@@ -582,5 +666,6 @@ module.exports = {
     handleAdminPanel,
     handleAddProduct,
     handleEditProduct,
-    handleDeleteProduct
+    handleDeleteProduct,
+    handleRepliesUpdate
 };
