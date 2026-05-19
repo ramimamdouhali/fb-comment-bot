@@ -50,7 +50,8 @@ const {
 const {
     handleAdminPanel,
     handleAddProduct,
-    handleEditProduct
+    handleEditProduct,
+    handleDeleteProduct
 } = require('./routes/admin');
 
 
@@ -170,41 +171,22 @@ const server = http.createServer(async (req, res) => {
     }
     
     //delet route
-    const deleteMatch = url.pathname.match(/^\/admin\/(\d+)\/delete$/);
-    if (req.method === 'POST' && deleteMatch) {    
-        const pageId = deleteMatch[1];    
-        const config = getPageConfig(pageId);    
-        if (
-            !checkAuth(
-                req,
-                config.password,
-                MASTER_PASSWORD
-            )
-        ) {
-            res.writeHead(401, {
-                'WWW-Authenticate': 'Basic realm="Admin Panel"'
-            });    
-            res.end('Unauthorized');    
-            return;
-        }
+    const deleteMatch =
+        url.pathname.match(
+            /^\/admin\/(\d+)\/delete$/
+        );
     
-        let body = '';    
-        req.on('data', chunk => {
-            body += chunk.toString();
-        });    
-        req.on('end', async () => {    
-            const params = new URLSearchParams(body);    
-            const code = params.get('code');    
-            const pageData = await getPageData(pageId);    
-            const prices = pageData?.prices || {};    
-            delete prices[code];    
-            await savePrices(pageId, prices);    
-            res.writeHead(302, {
-                Location: `/admin/${pageId}?success=deleted`
-            });    
-            res.end();
-        });    
-        return;
+    if (
+        req.method === 'POST'
+        && deleteMatch
+    ) {
+    
+        return handleDeleteProduct(
+            req,
+            res,
+            deleteMatch[1],
+            MASTER_PASSWORD
+        );
     }
 
 
