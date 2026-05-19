@@ -22,7 +22,7 @@ async function handleAdminPanel(
 ) {
 
         //const adminMatch = url.pathname.match(/^\/admin\/(\d+)$/);  
-        if (req.method === 'GET' && adminMatch) {    
+        //if (req.method === 'GET' && adminMatch) {    
             //const pageId = adminMatch[1];    
             const config = getPageConfig(pageId);    
             if (!config) {
@@ -288,7 +288,7 @@ async function handleAdminPanel(
             return;
         }   
 
-}
+//}
 
 module.exports = {
     handleAdminPanel
