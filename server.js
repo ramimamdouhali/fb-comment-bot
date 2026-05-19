@@ -1290,15 +1290,11 @@ const server = http.createServer(async (req, res) => {
                     </button>
         
                 </form>
+                <br><br>
+                 ${renderExtendButtons(doc.pageId)}       
+            </td>            
         
-            </td>
-        
-                
-            ${renderExtendButtons(doc.pageId)}        
-            
-        
-        </tr>
-        
+        </tr>        
         `;
         
         }).join('');     
