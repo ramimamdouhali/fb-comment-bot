@@ -688,6 +688,128 @@ const server = http.createServer(async (req, res) => {
             db
         );
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // Dashboard routes
+    if (
+        req.method === 'GET'
+        &&
+        url.pathname === '/dashboard'
+    ) {
+    
+        return handleDashboard(
+            req,
+            res,
+            MASTER_PASSWORD
+        );
+    }
+    
+    if (
+        req.method === 'POST'
+        &&
+        url.pathname === '/extend-expiry'
+    ) {
+    
+        return handleExtendExpiry(
+            req,
+            res,
+            MASTER_PASSWORD
+        );
+    }
+    
+    if (
+        req.method === 'POST'
+        &&
+        url.pathname === '/update-expiry'
+    ) {
+    
+        return handleUpdateExpiry(
+            req,
+            res,
+            MASTER_PASSWORD
+        );
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
    
     // ----- Privacy policy page -----
     if (req.method === 'GET' && url.pathname === '/privacy') {    
