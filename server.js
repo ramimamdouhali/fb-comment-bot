@@ -1,5 +1,4 @@
 const http = require('http');
-//const https = require('https');
 const { MongoClient } = require('mongodb');
 const processedComments = new Set();
 const {
@@ -470,9 +469,12 @@ const server = http.createServer(async (req, res) => {
         }
     
         if (
-            !checkAuth(req, config.password)
-            && !checkAuth(req, MASTER_PASSWORD)
-        ) {
+            !checkAuth(
+                req,
+                config.password,
+                MASTER_PASSWORD
+            )
+        ){
     
             res.writeHead(401, {
                 'WWW-Authenticate':
@@ -1031,10 +1033,12 @@ const server = http.createServer(async (req, res) => {
                                 console.log(`🆔 commentId: ${commentId}, postId: ${postId}`);
                                 if (postId && commentId) {
                                     //sendPublicReply(commentId, config.token);
+                                    const pageData =
+                                        await getPageData(pageId);
                                     await sendPublicReply(
                                         commentId,
                                         config.token,
-                                        pageId
+                                        pageData?.publicReplies || []
                                     );
                                     fetchPostContent(postId, config.token, async (postMessage) => {
                                         console.log(`📝 Post content: ${postMessage}`);
