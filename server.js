@@ -49,7 +49,8 @@ const {
 
 const {
     handleAdminPanel,
-    handleAddProduct
+    handleAddProduct,
+    handleEditProduct
 } = require('./routes/admin');
 
 
@@ -150,126 +151,22 @@ const server = http.createServer(async (req, res) => {
 
 
     // EDIT ROUTE
-    const editMatch = url.pathname.match(
-        /^\/admin\/(\d+)\/edit$/
-    );
+    const editMatch =
+        url.pathname.match(
+            /^\/admin\/(\d+)\/edit$/
+        );
     
     if (
         req.method === 'POST'
         && editMatch
     ) {
     
-        const pageId = editMatch[1];
-    
-        const config = getPageConfig(pageId);
-    
-        if (!config) {
-    
-            res.writeHead(404);
-    
-            res.end('Page not configured');
-    
-            return;
-        }
-    
-        if (
-            !checkAuth(
-                req,
-                config.password,
-                MASTER_PASSWORD
-            )
-        ){
-    
-            res.writeHead(401, {
-                'WWW-Authenticate':
-                    'Basic realm="Admin Panel"'
-            });
-    
-            res.end('Unauthorized');
-    
-            return;
-        }
-    
-        let body = '';
-    
-        req.on('data', chunk => {
-            body += chunk.toString();
-        });
-    
-        req.on('end', async () => {
-    
-            const params =
-                new URLSearchParams(body);
-    
-            const oldCode =
-                params.get('oldCode');
-    
-            const newCode =
-                params.get('code');
-    
-            const newPrice =
-                parseFloat(params.get('price'));
-    
-            if (
-                !oldCode
-                || !newCode
-                || !newCode.trim()
-                || isNaN(newPrice)
-                || newPrice < 0
-            ) {
-    
-                res.writeHead(302, {
-                    Location:
-                        `/admin/${pageId}?error=invalid`
-                });
-    
-                res.end();
-    
-                return;
-            }
-    
-            const pageData =
-                await getPageData(pageId);
-    
-            const prices =
-                pageData?.prices || {};
-
-
-            if (
-                oldCode !== newCode
-                && prices[newCode]
-            ) {
-            
-                res.writeHead(302, {
-                    Location:
-                        `/admin/${pageId}?error=duplicate`
-                });
-            
-                res.end();
-            
-                return;
-            }
-
-            
-            delete prices[oldCode];
-    
-            prices[newCode] = newPrice;
-    
-            await savePrices(
-                pageId,
-                prices
-            );
-    
-            res.writeHead(302, {
-                Location:
-                    `/admin/${pageId}?success=edited`
-            });
-    
-            res.end();
-    
-        });
-    
-        return;
+        return handleEditProduct(
+            req,
+            res,
+            editMatch[1],
+            MASTER_PASSWORD
+        );
     }
     
     //delet route
