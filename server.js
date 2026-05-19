@@ -48,7 +48,8 @@ const {
 } = require('./routes/dashboard');
 
 const {
-    handleAdminPanel
+    handleAdminPanel,
+    handleAddProduct
 } = require('./routes/admin');
 
 
@@ -125,50 +126,22 @@ const server = http.createServer(async (req, res) => {
 
 
     //add route
-    const addMatch = url.pathname.match(/^\/admin\/(\d+)\/add$/);
-    if (req.method === 'POST' && addMatch) {    
-        const pageId = addMatch[1];    
-        const config = getPageConfig(pageId);    
-        if (
-            !checkAuth(
-                req,
-                config.password,
-                MASTER_PASSWORD
-            )
-        ) {
-            res.writeHead(401, {
-                'WWW-Authenticate': 'Basic realm="Admin Panel"'
-            });    
-            res.end('Unauthorized');    
-            return;
-        }    
-        let body = '';    
-        req.on('data', chunk => {
-            body += chunk.toString();
-        });    
-        req.on('end', async () => {    
-            const params = new URLSearchParams(body);    
-            const code = params.get('code');    
-            const price = parseFloat(params.get('price'));    
-            const pageData = await getPageData(pageId);    
-            const prices = pageData?.prices || {};
-
-            if (prices[code]) {
-                res.writeHead(302, {
-                    Location:
-                        `/admin/${pageId}?error=duplicate`
-                });            
-                res.end();            
-                return;
-            }
-            prices[code] = price;    
-            await savePrices(pageId, prices);    
-            res.writeHead(302, {
-                Location: `/admin/${pageId}?success=added`
-            });    
-            res.end();
-        });    
-        return;
+    const addMatch =
+        url.pathname.match(
+            /^\/admin\/(\d+)\/add$/
+        );
+    
+    if (
+        req.method === 'POST'
+        && addMatch
+    ) {
+    
+        return handleAddProduct(
+            req,
+            res,
+            addMatch[1],
+            MASTER_PASSWORD
+        );
     }
 
     
