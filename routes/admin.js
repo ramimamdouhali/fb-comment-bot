@@ -506,6 +506,73 @@ async function handleAdminPanel(
 
 
 
+    function handleDeleteProduct(
+        req,
+        res,
+        pageId,
+        MASTER_PASSWORD
+    ) {
+    
+        const config =
+            getPageConfig(pageId);
+    
+        if (
+            !checkAuth(
+                req,
+                config.password,
+                MASTER_PASSWORD
+            )
+        ) {
+    
+            res.writeHead(401, {
+                'WWW-Authenticate':
+                    'Basic realm="Admin Panel"'
+            });
+    
+            res.end('Unauthorized');
+    
+            return;
+        }
+    
+        let body = '';
+    
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+    
+        req.on('end', async () => {
+    
+            const params =
+                new URLSearchParams(body);
+    
+            const code =
+                params.get('code');
+    
+            const pageData =
+                await getPageData(pageId);
+    
+            const prices =
+                pageData?.prices || {};
+    
+            delete prices[code];
+    
+            await savePrices(
+                pageId,
+                prices
+            );
+    
+            res.writeHead(302, {
+                Location:
+                    `/admin/${pageId}?success=deleted`
+            });
+    
+            res.end();
+        });
+    }
+
+
+
+
 
 
 
@@ -514,5 +581,6 @@ async function handleAdminPanel(
 module.exports = {
     handleAdminPanel,
     handleAddProduct,
-    handleEditProduct
+    handleEditProduct,
+    handleDeleteProduct
 };
