@@ -40,6 +40,11 @@ const {
 const {
     handleWebhook
 } = require('./routes/webhook');
+const {
+    handleDashboard,
+    handleExtendExpiry,
+    handleUpdateExpiry
+} = require('./routes/dashboard');
 
 
 
