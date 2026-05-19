@@ -13,6 +13,14 @@ const {
     checkAuth
 } = require('./helpers/auth');
 
+const {
+    extendSubscription,
+    isSubscriptionActive
+} = require(
+    './helpers/subscription'
+);
+
+
 
 // ---------- Environment Variables ----------
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
@@ -226,79 +234,9 @@ async function savePrices(
     return true;
 }
 
-async function extendSubscription(
-    pageId,
-    months
-) {
 
-    if (!db) return false;
 
-    const page =
-        await db
-            .collection('pages')
-            .findOne({ pageId });
 
-    const now =
-        new Date();
-
-    let baseDate = now;
-
-    if (
-        page
-        &&
-        page.subscriptionExpiry
-    ) {
-
-        const currentExpiry =
-            new Date(
-                page.subscriptionExpiry
-            );
-
-        if (
-            currentExpiry > now
-        ) {
-
-            baseDate =
-                currentExpiry;
-        }
-    }
-
-    const newExpiry =
-        new Date(baseDate);
-
-    newExpiry.setMonth(
-        newExpiry.getMonth() + months
-    );
-
-    await db
-        .collection('pages')
-        .updateOne(
-            { pageId },
-            {
-                $set: {
-                    subscriptionExpiry:
-                        newExpiry
-                },
-                
-                $setOnInsert: {
-                    publicReplies: [
-                        'Thanks for your comment!'
-                    ],
-                    prices: {}
-                }
-            },
-            { upsert: true }
-        );
-
-    return newExpiry;
-}
-
-async function isSubscriptionActive(pageId) {
-    if (!db) return false;
-    const doc = await db.collection('pages').findOne({ pageId });
-    if (!doc || !doc.subscriptionExpiry) return false;
-    return new Date() < new Date(doc.subscriptionExpiry);
-}
 
 
 
@@ -935,7 +873,7 @@ const server = http.createServer(async (req, res) => {
                     res.end('Invalid request: need { pageId, months }');
                     return;
                 }
-                const newExpiry = await extendSubscription(pageId, months);
+                const newExpiry = await extendSubscription(db,pageId, months);
                 //res.writeHead(200, { 'Content-Type': 'application/json' });
                 //res.end(JSON.stringify({ status: 'ok', newExpiry }));
                 
@@ -1207,7 +1145,7 @@ const server = http.createServer(async (req, res) => {
                             console.error(`❌ Unknown page ${pageId}, ignoring`);
                             continue;
                         }
-                        const active = await isSubscriptionActive(pageId);
+                        const active = await isSubscriptionActive(db,pageId);
                         if (!active) {
                             console.log(`⏸️ Page ${pageId} subscription expired – skipping`);
                             continue;
