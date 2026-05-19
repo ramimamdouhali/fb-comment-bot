@@ -8,6 +8,12 @@ const {
     renderFlashMessage
 } = require('./helpers/render');
 
+const {
+    getPageConfig,
+    checkAuth
+} = require('./helpers/auth');
+
+
 // ---------- Environment Variables ----------
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 const MASTER_PASSWORD = process.env.MASTER_PW;
@@ -28,12 +34,7 @@ async function connectDB() {
 }
 connectDB().catch(err => { console.error("DB connection failed:", err); process.exit(1); });
 
-function getPageConfig(pageId) {
-    const token = process.env[`PAGE_TOKEN_${pageId}`];
-    const password = process.env[`ADMIN_PW_${pageId}`];
-    if (!token || !password) return null;
-    return { token, password };
-}
+
 
 
 
@@ -182,21 +183,6 @@ function sendPrivateReply(commentId, text, accessToken) {
 function notifyPageOwner(pageId, message) {
     console.log(`[${pageId}] ${message}`);
 }
-
-
-// ---------- HTTP Basic Auth ----------
-function checkAuth(req, ...validPasswords) {
-    const auth = req.headers.authorization;
-    if (!auth || !auth.startsWith('Basic ')) {
-        return false;
-    }
-    const credentials = Buffer
-        .from(auth.split(' ')[1], 'base64')
-        .toString();
-    const [, password] = credentials.split(':');
-    return validPasswords.includes(password);
-}
-
 
 
 
