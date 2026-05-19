@@ -1169,6 +1169,9 @@ const server = http.createServer(async (req, res) => {
         const docs = await db
             .collection('pages')
             .find()
+            .sort({
+                subscriptionExpiry: 1
+            })
             .toArray();
                 
         const rows = docs.map(doc => {
