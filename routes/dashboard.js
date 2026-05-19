@@ -97,7 +97,7 @@ async function handleDashboard(
                     'status-warning';
 
                 statusText =
-                    `🟠 ${daysRemaining} days left;
+                    `🟠 ${daysRemaining} days left`;
             }
 
             if (
