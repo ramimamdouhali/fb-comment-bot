@@ -60,21 +60,105 @@ async function handleAdminPage(
     const prices =
         pageData?.prices || {};
 
-    const rows =
-        Object.entries(prices)
-        .map(
-            ([code, price]) => `
-
-            <tr>
-
-                <td>${code}</td>
-
-                <td>$${price}</td>
-
-            </tr>
-            `
-        )
-        .join('');
+    const rows = Object.entries(prices)
+    .map(([code, price]) => `
+    
+    <tr data-code="${code.toLowerCase()}">
+    
+        <td class="code-text">
+            ${code}
+        </td>
+    
+        <td class="price-text">
+            $${price}
+        </td>
+    
+        <td>
+    
+            <button
+                class="edit-btn"
+                onclick="enableEdit(this)"
+            >
+                Edit
+            </button>
+    
+            <form
+                method="POST"
+                action="/admin/${pageId}/edit"
+                class="edit-form"
+                style="display:none;"
+            >
+    
+                <input
+                    type="hidden"
+                    name="oldCode"
+                    value="${code}"
+                >
+    
+                <input
+                    type="text"
+                    name="code"
+                    value="${code}"
+                    required
+                >
+    
+                <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    name="price"
+                    value="${price}"
+                    required
+                >
+    
+                <button
+                    class="save-btn"
+                    type="submit"
+                >
+                    Save
+                </button>
+    
+                <button
+                    type="button"
+                    class="cancel-btn"
+                    onclick="cancelEdit(this)"
+                >
+                    Cancel
+                </button>
+    
+            </form>
+    
+            <form
+                method="POST"
+                action="/admin/${pageId}/delete"
+                style="display:inline;"
+                onsubmit="
+                    return confirm(
+                        'Delete product ${code}?'
+                    );
+                "
+            >
+    
+                <input
+                    type="hidden"
+                    name="code"
+                    value="${code}"
+                >
+    
+                <button
+                    class="delete-btn"
+                    type="submit"
+                >
+                    Delete
+                </button>
+    
+            </form>
+    
+        </td>
+    
+    </tr>
+    
+    `).join('');
 
     renderPage(
         res,
