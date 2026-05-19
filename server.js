@@ -51,7 +51,8 @@ const {
     handleAdminPanel,
     handleAddProduct,
     handleEditProduct,
-    handleDeleteProduct
+    handleDeleteProduct,
+    handleRepliesUpdate
 } = require('./routes/admin');
 
 
@@ -190,6 +191,9 @@ const server = http.createServer(async (req, res) => {
     }
 
 
+
+ // ----- replies -----   
+
     const repliesMatch =
         url.pathname.match(
             /^\/admin\/(\d+)\/replies$/
@@ -197,90 +201,15 @@ const server = http.createServer(async (req, res) => {
     
     if (
         req.method === 'POST'
-        &&
-        repliesMatch
+        && repliesMatch
     ) {
     
-        const pageId =
-            repliesMatch[1];
-    
-        const config =
-            getPageConfig(pageId);
-    
-        if (
-            !checkAuth(
-                req,
-                config.password,
-                MASTER_PASSWORD
-            )
-        ) {
-    
-            res.writeHead(
-                401,
-                {
-                    'WWW-Authenticate':
-                    'Basic realm="Admin Panel"'
-                }
-            );
-    
-            res.end('Unauthorized');
-    
-            return;
-        }
-    
-        let body = '';
-    
-        req.on(
-            'data',
-            chunk => {
-                body += chunk.toString();
-            }
+        return handleRepliesUpdate(
+            req,
+            res,
+            repliesMatch[1],
+            MASTER_PASSWORD
         );
-    
-        req.on(
-            'end',
-            async () => {
-    
-                const params =
-                    new URLSearchParams(body);
-    
-                const publicReplies =
-                    params
-                        .get('publicReplies')
-    
-                        .split('\n')
-    
-                        .map(
-                            r => r.trim()
-                        )
-    
-                        .filter(Boolean);
-    
-                await db
-                    .collection('pages')
-                    .updateOne(
-                        { pageId },
-    
-                        {
-                            $set: {
-                                publicReplies
-                            }
-                        }
-                    );
-    
-                res.writeHead(
-                    302,
-                    {
-                        Location:
-                            `/admin/${pageId}?success=replies`
-                    }
-                );
-    
-                res.end();
-            }
-        );
-    
-        return;
     }
 
   
