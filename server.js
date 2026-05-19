@@ -1,5 +1,5 @@
 const http = require('http');
-const https = require('https');
+//const https = require('https');
 const { MongoClient } = require('mongodb');
 const processedComments = new Set();
 const {
@@ -18,6 +18,16 @@ const {
     isSubscriptionActive
 } = require(
     './helpers/subscription'
+);
+
+const {
+    fetchPostContent,
+    extractCodeFromPost,
+    sendPublicReply,
+    sendPrivateReply,
+    notifyPageOwner
+} = require(
+    './services/facebook'
 );
 
 
@@ -41,157 +51,6 @@ async function connectDB() {
     console.log("Connected to MongoDB");
 }
 connectDB().catch(err => { console.error("DB connection failed:", err); process.exit(1); });
-
-
-
-
-
-// ---------- Facebook API helpers ----------
-function fetchPostContent(postId, accessToken, callback) {
-    const url = `https://graph.facebook.com/v20.0/${postId}?fields=message&access_token=${accessToken}`;
-    https.get(url, (res) => {
-        let data = '';
-        res.on('data', chunk => data += chunk);
-        res.on('end', () => {
-            try {
-                const json = JSON.parse(data);
-                callback(json.message || '');
-            } catch (err) {
-                callback('');
-            }
-        });
-    }).on('error', () => callback(''));
-}
-
-function extractCodeFromPost(message) {
-    const match = message.match(/Code:\s*(\S+)/i);
-    return match ? match[1] : null;
-}
-
-
-
-
-async function sendPublicReply(
-    commentId,
-    accessToken,
-    pageId
-) {
-
-    const pageData =
-        await getPageData(pageId);
-
-    const publicReplies =
-        pageData?.publicReplies
-        || [
-            'Thanks for your comment!'
-        ];
-
-    const randomIndex =
-        Math.floor(
-            Math.random()
-            *
-            publicReplies.length
-        );
-
-    const message =
-        publicReplies[randomIndex];
-
-    const payload =
-        JSON.stringify({
-            message
-        });
-
-    const options = {
-        hostname:
-            'graph.facebook.com',
-
-        path:
-            `/v20.0/${commentId}/comments?access_token=${accessToken}`,
-
-        method: 'POST',
-
-        headers: {
-            'Content-Type':
-                'application/json'
-        }
-    };
-
-    const req =
-        https.request(
-            options,
-            (res) => {
-
-                let data = '';
-
-                res.on(
-                    'data',
-                    chunk =>
-                        data += chunk
-                );
-
-                res.on(
-                    'end',
-                    () => {
-
-                        console.log(
-                            'Public reply API response:',
-                            data
-                        );
-                    }
-                );
-            }
-        );
-
-    req.on(
-        'error',
-        (err) =>
-            console.error(
-                'Public reply error:',
-                err
-            )
-    );
-
-    req.write(payload);
-
-    req.end();
-}
-
-
-
-
-
-
-
-
-
-function sendPrivateReply(commentId, text, accessToken) {
-    const payload = JSON.stringify({
-        recipient: { comment_id: commentId },
-        message: { text: text }
-    });
-    const options = {
-        hostname: 'graph.facebook.com',
-        path: `/v20.0/me/messages?access_token=${accessToken}`,
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-    };
-    const req = https.request(options, (res) => {
-        let data = '';
-        res.on('data', chunk => data += chunk);
-        res.on('end', () => {
-    console.log('Private reply API response:', data);
-});
-        
-    });
-    req.on('error', (err) => console.error('Private reply error:', err));
-    req.write(payload);
-    req.end();
-}
-
-function notifyPageOwner(pageId, message) {
-    console.log(`[${pageId}] ${message}`);
-}
-
 
 
 // ---------- MongoDB operations ----------
