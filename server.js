@@ -1255,12 +1255,15 @@ const server = http.createServer(async (req, res) => {
 
                 <small>
                     ${statusText}
-                </small>
-        
+                </small>        
+            </td>
+
+
+            <td>
+                ${statusText}            
             </td>
         
-            <td>
-        
+            <td>        
                 <form
                     method="POST"
                     action="/update-expiry"
