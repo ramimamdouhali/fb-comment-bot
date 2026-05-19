@@ -47,6 +47,10 @@ const {
     handleUpdateExpiry
 } = require('./routes/dashboard');
 
+const {
+    handleAdminPanel
+} = require('./routes/admin');
+
 
 
 
@@ -94,7 +98,27 @@ const server = http.createServer(async (req, res) => {
 
     
     // Admin panel for price editing (GET)
-    //admin GET    
+    //admin GET 
+
+    const adminMatch =
+        url.pathname.match(
+            /^\/admin\/(\d+)$/
+        );
+    
+    if (
+        req.method === 'GET'
+        && adminMatch
+    ) {
+    
+        return handleAdminPanel(
+            req,
+            res,
+            adminMatch[1],
+            MASTER_PASSWORD,
+            url
+        );
+    }
+    
 
 
     
