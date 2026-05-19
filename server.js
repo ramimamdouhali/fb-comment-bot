@@ -43,60 +43,7 @@ if (!VERIFY_TOKEN || !MASTER_PASSWORD || !MONGODB_URI) {
 
 // ---------- MongoDB Connection ----------
 let db;
-async function connectDB() {
-    const client = new MongoClient(MONGODB_URI);
-    await client.connect();
-    db = client.db();
-    console.log("Connected to MongoDB");
-}
 connectDB().catch(err => { console.error("DB connection failed:", err); process.exit(1); });
-
-
-// ---------- MongoDB operations ----------
-async function getPageData(pageId) {
-    if (!db) return null;
-    return await db.collection('pages').findOne({ pageId });
-}
-
-async function savePrices(
-    pageId,
-    prices
-) {
-
-    if (!db) return false;
-
-    await db
-        .collection('pages')
-        .updateOne(
-            { pageId },
-
-            {
-                $set: {
-                    prices
-                },
-
-                $setOnInsert: {
-
-                    publicReplies: [
-                        'Thanks for your comment!'
-                    ],
-
-                    subscriptionExpiry:
-                        new Date()
-                }
-            },
-
-            { upsert: true }
-        );
-
-    return true;
-}
-
-
-
-
-
-
 
 
 
