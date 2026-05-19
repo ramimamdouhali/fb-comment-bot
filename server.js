@@ -1,6 +1,6 @@
 const http = require('http');
-
 const processedComments = new Set();
+
 const {
     renderPage,
     renderExtendButtons,
@@ -37,6 +37,10 @@ const {
 } = require(
     './services/database'
 );
+const {
+    handleWebhook
+} = require('./routes/webhook');
+
 
 
 
@@ -941,113 +945,18 @@ const server = http.createServer(async (req, res) => {
 
     
         // ----- Receive comment events (POST) -----   
-    if (req.method === 'POST' && url.pathname === '/webhook') {
-        console.log('📨 POST /webhook received');  // <-- debug
-        let body = '';
-        req.on('data', chunk => {
-            body += chunk;
-            console.log(`📦 chunk length: ${chunk.length}`); // <-- debug
-        });
-        req.on('end', async () => {
-            console.log('✅ Webhook body length:', body.length);
-            console.log('📄 Body preview:', body.substring(0, 500));
-            try {
-                const data = JSON.parse(body);
-                console.log('🔍 Parsed data object:', Object.keys(data));
-                if (data.object === 'page') {
-                    console.log('📑 Processing page object');
-                    for (const entry of data.entry) {
-                        const pageId = entry.id;
-                        console.log(`🆔 Page ID: ${pageId}`);
-                        const config = getPageConfig(pageId);
-                        if (!config) {
-                            console.error(`❌ Unknown page ${pageId}, ignoring`);
-                            continue;
-                        }
-                        const active = await isSubscriptionActive(db,pageId);
-                        if (!active) {
-                            console.log(`⏸️ Page ${pageId} subscription expired – skipping`);
-                            continue;
-                        }
-                        for (const change of entry.changes || []) {
-                            if (change.field === 'feed') {
-                                console.log('💬 Feed change detected');
-                                const comment = change.value;
-                                const commentId = comment.comment_id || comment.id;
-                                const postId = comment.post_id;
-                                // Ignore self-comments and duplicate comments
-
-                                const commenterId = comment.from?.id;
-                                if (commenterId === pageId) {
-                                    console.log(`Ignoring page self-comment: ${commentId}`);
-                                    continue;
-                                    }                                
-                                if (processedComments.has(commentId)) {
-                                    console.log(`Duplicate comment ignored: ${commentId}`);
-                                    continue;
-                                    }
-                                
-                                // Process valid comments                               
-                                console.log(`🆔 commentId: ${commentId}, postId: ${postId}`);
-                                if (postId && commentId) {
-                                    //sendPublicReply(commentId, config.token);
-                                    const pageData =
-                                        await getPageData(pageId);
-                                    await sendPublicReply(
-                                        commentId,
-                                        config.token,
-                                        pageData?.publicReplies || []
-                                    );
-                                    fetchPostContent(postId, config.token, async (postMessage) => {
-                                        console.log(`📝 Post content: ${postMessage}`);
-                                        const code = extractCodeFromPost(postMessage);
-                                        if (code) {
-                                            const pageData = await getPageData(pageId);
-                                            const price = pageData?.prices?.[code];
-                                            if (price !== undefined) {
-                                                // sendPrivateReply(commentId, `The price for this item is $${price}.`, config.token);
-                                                sendPrivateReply(commentId, `سعر هذا المنتج هو:${price}.`, config.token);
-                                                processedComments.add(commentId);
-                                            } else {
-                                                //sendPrivateReply(commentId, `Sorry, price for code "${code}" not found.`, config.token);
-                                                sendPrivateReply(commentId, `عذرا، لم أعثر على سعر هذا المنتج: "${code}" لمعرفة السعر علق هنا بنقطة.`, config.token);
-                                                // Owner alert
-                                                try {
-                                                    notifyPageOwner(pageId,`Missing price for code "${code}" in post ${postId}`);
-                                                    } catch (err) {
-                                                    console.error('notifyPageOwner failed:', err);
-                                                    }
-                                            }
-                                        } else {
-                                            //sendPrivateReply(commentId, 'Please include an item code in the post, e.g., "Code: item_blue_widget"', config.token);
-                                            sendPrivateReply(commentId, 'عذرا، لايحتوي المنشور على معرف للمنتج المرغوب. لمعرفة السعر علق هنا بنقطة.', config.token);
-                                            // Owner alert
-                                            try {
-                                                    notifyPageOwner(pageId,`No product code found in post ${postId}`);
-                                                    } catch (err) {
-                                                    console.error('notifyPageOwner failed:', err);
-                                                    }
-                                        }
-                                    });
-                                } else {
-                                    console.log('⚠️ Missing commentId or postId');
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    console.log('❌ Not a page object');
-                }
-            } catch (err) {
-                console.error('💥 Error parsing webhook:', err);
-            }
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ status: 'ok' }));
-        });
-        return;
+    if (
+        req.method === 'POST'
+        &&
+        url.pathname === '/webhook'
+    ) {
+    
+        return handleWebhook(
+            req,
+            res,
+            db
+        );
     }
-
-
    
     // ----- Privacy policy page -----
     if (req.method === 'GET' && url.pathname === '/privacy') {    
