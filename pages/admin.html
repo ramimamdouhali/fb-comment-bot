@@ -219,6 +219,37 @@
             </button>
         </form>
     </div>
+
+    <h2>
+        Public Replies
+    </h2>
+    
+    <form
+        method="POST"
+        action="/admin/{{PAGE_ID}}/replies"
+    >
+    
+        <textarea
+            name="publicReplies"
+            rows="8"
+            style="
+                width:100%;
+                padding:10px;
+                margin-top:10px;
+            "
+            placeholder="One reply per line"
+        >{{PUBLIC_REPLIES}}</textarea>
+    
+        <br><br>
+    
+        <button type="submit">
+            Save Replies
+        </button>
+    
+    </form>
+
+
+    
 </div>
 
     <script>
