@@ -30,19 +30,7 @@ function getPageConfig(pageId) {
     return { token, password };
 }
 
-// ---------- Random public replies ----------
-const PUBLIC_REPLIES = [
-    "Thanks for your comment! 👍",
-    "We appreciate your feedback! 😊",
-    "Great to hear from you!",
-    "Thanks for stopping by!",
-    "We'll get back to you soon!",
-    "Have a great day! 🌟",
-    "Thanks for engaging with us!",
-    "We love hearing from our community! 💬",
-    "Thanks! Check your private messages.",
-    "Appreciate you! 🙌"
-];
+
 
 // ---------- Facebook API helpers ----------
 function fetchPostContent(postId, accessToken, callback) {
@@ -66,28 +54,101 @@ function extractCodeFromPost(message) {
     return match ? match[1] : null;
 }
 
-function sendPublicReply(commentId, accessToken) {
-    const randomIndex = Math.floor(Math.random() * PUBLIC_REPLIES.length);
-    const message = PUBLIC_REPLIES[randomIndex];
-    const payload = JSON.stringify({ message });
+
+
+
+async function sendPublicReply(
+    commentId,
+    accessToken,
+    pageId
+) {
+
+    const pageData =
+        await getPageData(pageId);
+
+    const publicReplies =
+        pageData?.publicReplies
+        || [
+            'Thanks for your comment!'
+        ];
+
+    const randomIndex =
+        Math.floor(
+            Math.random()
+            *
+            publicReplies.length
+        );
+
+    const message =
+        publicReplies[randomIndex];
+
+    const payload =
+        JSON.stringify({
+            message
+        });
+
     const options = {
-        hostname: 'graph.facebook.com',
-        path: `/v20.0/${commentId}/comments?access_token=${accessToken}`,
+        hostname:
+            'graph.facebook.com',
+
+        path:
+            `/v20.0/${commentId}/comments?access_token=${accessToken}`,
+
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+
+        headers: {
+            'Content-Type':
+                'application/json'
+        }
     };
-    const req = https.request(options, (res) => {
-        let data = '';
-        res.on('data', chunk => data += chunk);
-        res.on('end', () => {
-    console.log('Public reply API response:', data);
-});
-        
-    });
-    req.on('error', (err) => console.error('Public reply error:', err));
+
+    const req =
+        https.request(
+            options,
+            (res) => {
+
+                let data = '';
+
+                res.on(
+                    'data',
+                    chunk =>
+                        data += chunk
+                );
+
+                res.on(
+                    'end',
+                    () => {
+
+                        console.log(
+                            'Public reply API response:',
+                            data
+                        );
+                    }
+                );
+            }
+        );
+
+    req.on(
+        'error',
+        (err) =>
+            console.error(
+                'Public reply error:',
+                err
+            )
+    );
+
     req.write(payload);
+
     req.end();
 }
+
+
+
+
+
+
+
+
 
 function sendPrivateReply(commentId, text, accessToken) {
     const payload = JSON.stringify({
@@ -164,13 +225,37 @@ async function getPageData(pageId) {
     return await db.collection('pages').findOne({ pageId });
 }
 
-async function savePrices(pageId, prices) {
+async function savePrices(
+    pageId,
+    prices
+) {
+
     if (!db) return false;
-    await db.collection('pages').updateOne(
-        { pageId },
-        { $set: { prices } },
-        { upsert: true }
-    );
+
+    await db
+        .collection('pages')
+        .updateOne(
+            { pageId },
+
+            {
+                $set: {
+                    prices
+                },
+
+                $setOnInsert: {
+
+                    publicReplies: [
+                        'Thanks for your comment!'
+                    ],
+
+                    subscriptionExpiry:
+                        new Date()
+                }
+            },
+
+            { upsert: true }
+        );
+
     return true;
 }
 
@@ -226,6 +311,13 @@ async function extendSubscription(
                 $set: {
                     subscriptionExpiry:
                         newExpiry
+                },
+                
+                $setOnInsert: {
+                    publicReplies: [
+                        'Thanks for your comment!'
+                    ],
+                    prices: {}
                 }
             },
             { upsert: true }
@@ -1106,7 +1198,12 @@ const server = http.createServer(async (req, res) => {
                                 // Process valid comments                               
                                 console.log(`🆔 commentId: ${commentId}, postId: ${postId}`);
                                 if (postId && commentId) {
-                                    sendPublicReply(commentId, config.token);
+                                    //sendPublicReply(commentId, config.token);
+                                    await sendPublicReply(
+                                        commentId,
+                                        config.token,
+                                        pageId
+                                    );
                                     fetchPostContent(postId, config.token, async (postMessage) => {
                                         console.log(`📝 Post content: ${postMessage}`);
                                         const code = extractCodeFromPost(postMessage);
