@@ -384,8 +384,135 @@ async function handleAdminPanel(
 
 
 
+    function handleEditProduct(
+        req,
+        res,
+        pageId,
+        MASTER_PASSWORD
+    ) {
+    
+        const config =
+            getPageConfig(pageId);
+    
+        if (!config) {
+    
+            res.writeHead(404);
+    
+            res.end('Page not configured');
+    
+            return;
+        }
+    
+        if (
+            !checkAuth(
+                req,
+                config.password,
+                MASTER_PASSWORD
+            )
+        ){
+    
+            res.writeHead(401, {
+                'WWW-Authenticate':
+                    'Basic realm="Admin Panel"'
+            });
+    
+            res.end('Unauthorized');
+    
+            return;
+        }
+    
+        let body = '';
+    
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+    
+        req.on('end', async () => {
+    
+            const params =
+                new URLSearchParams(body);
+    
+            const oldCode =
+                params.get('oldCode');
+    
+            const newCode =
+                params.get('code');
+    
+            const newPrice =
+                parseFloat(
+                    params.get('price')
+                );
+    
+            if (
+                !oldCode
+                || !newCode
+                || !newCode.trim()
+                || isNaN(newPrice)
+                || newPrice < 0
+            ) {
+    
+                res.writeHead(302, {
+                    Location:
+                        `/admin/${pageId}?error=invalid`
+                });
+    
+                res.end();
+    
+                return;
+            }
+    
+            const pageData =
+                await getPageData(pageId);
+    
+            const prices =
+                pageData?.prices || {};
+    
+            if (
+                oldCode !== newCode
+                && prices[newCode]
+            ) {
+    
+                res.writeHead(302, {
+                    Location:
+                        `/admin/${pageId}?error=duplicate`
+                });
+    
+                res.end();
+    
+                return;
+            }
+    
+            delete prices[oldCode];
+    
+            prices[newCode] = newPrice;
+    
+            await savePrices(
+                pageId,
+                prices
+            );
+    
+            res.writeHead(302, {
+                Location:
+                    `/admin/${pageId}?success=edited`
+            });
+    
+            res.end();
+        });
+    }
+
+
+
+
+
+
+
+
+
+
+
 
 module.exports = {
     handleAdminPanel,
-    handleAddProduct
+    handleAddProduct,
+    handleEditProduct
 };
