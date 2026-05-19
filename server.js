@@ -1,8 +1,13 @@
-const fs = require('fs');
 const http = require('http');
 const https = require('https');
 const { MongoClient } = require('mongodb');
 const processedComments = new Set();
+const {
+    renderPage,
+    renderExtendButtons,
+    renderFlashMessage
+} = require('./helpers/render');
+
 // ---------- Environment Variables ----------
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 const MASTER_PASSWORD = process.env.MASTER_PW;
@@ -192,31 +197,7 @@ function checkAuth(req, ...validPasswords) {
     return validPasswords.includes(password);
 }
 
-function renderPage(
-    res,
-    filePath,
-    replacements = {}
-) {
 
-    let html = fs.readFileSync(
-        filePath,
-        'utf8'
-    );
-
-    for (const key in replacements) {
-
-        html = html.replaceAll(
-            `{{${key}}}`,
-            replacements[key]
-        );
-    }
-
-    res.writeHead(200, {
-        'Content-Type': 'text/html'
-    });
-
-    res.end(html);
-}
 
 
 // ---------- MongoDB operations ----------
@@ -333,103 +314,10 @@ async function isSubscriptionActive(pageId) {
     return new Date() < new Date(doc.subscriptionExpiry);
 }
 
-function renderExtendButtons(
-    pageId
-) {
-
-    return `
-
-        <form
-            method="POST"
-            action="/extend-expiry"
-            style="display:inline;"
-        >
-
-            <input
-                type="hidden"
-                name="pageId"
-                value="${pageId}"
-            >
-
-            <input
-                type="hidden"
-                name="months"
-                value="1"
-            >
-
-            <button type="submit">
-                +1 Month
-            </button>
-
-        </form>
-
-        <form
-            method="POST"
-            action="/extend-expiry"
-            style="display:inline;"
-        >
-
-            <input
-                type="hidden"
-                name="pageId"
-                value="${pageId}"
-            >
-
-            <input
-                type="hidden"
-                name="months"
-                value="3"
-            >
-
-            <button type="submit">
-                +3 Months
-            </button>
-
-        </form>
-
-        <form
-            method="POST"
-            action="/extend-expiry"
-            style="display:inline;"
-        >
-
-            <input
-                type="hidden"
-                name="pageId"
-                value="${pageId}"
-            >
-
-            <input
-                type="hidden"
-                name="months"
-                value="12"
-            >
-
-            <button type="submit">
-                +12 Months
-            </button>
-
-        </form>
-
-    `;
-}
 
 
-function renderFlashMessage(
-    type,
-    message
-) {
 
-    if (!message) return '';
 
-    return `
-
-        <div class="flash ${type}">
-            ${message}
-        </div>
-
-    `;
-}
 
 
 
