@@ -455,6 +455,7 @@ const server = http.createServer(async (req, res) => {
 
     
     // Admin panel for price editing (GET)
+    //admin GET
     const adminMatch = url.pathname.match(/^\/admin\/(\d+)$/);    
     if (req.method === 'GET' && adminMatch) {    
         const pageId = adminMatch[1];    
@@ -480,6 +481,11 @@ const server = http.createServer(async (req, res) => {
         }    
         const pageData = await getPageData(pageId);    
         const prices = pageData?.prices || {}; 
+        const publicReplies =
+            (
+                pageData?.publicReplies
+                || []
+            ).join('\n');
 
         const expiryDate =
             new Date(
@@ -701,13 +707,14 @@ const server = http.createServer(async (req, res) => {
                 ROWS: rows,
                 PAGE_ID: pageId,
                 SUBSCRIPTION_INFO: subscriptionInfo,
+                PUBLIC_REPLIES: publicReplies,
             }
         );
            
         return;
     }
 
-
+    //add route
     const addMatch = url.pathname.match(/^\/admin\/(\d+)\/add$/);
     if (req.method === 'POST' && addMatch) {    
         const pageId = addMatch[1];    
@@ -879,7 +886,7 @@ const server = http.createServer(async (req, res) => {
         return;
     }
     
-
+    //delet route
     const deleteMatch = url.pathname.match(/^\/admin\/(\d+)\/delete$/);
     if (req.method === 'POST' && deleteMatch) {    
         const pageId = deleteMatch[1];    
