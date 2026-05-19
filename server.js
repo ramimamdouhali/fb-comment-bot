@@ -1250,11 +1250,11 @@ const server = http.createServer(async (req, res) => {
         
                     onchange="toggleSaveButton(this)"
                 >
-                <br>
+               // <br>
 
-                <small>
-                    ${statusText}
-                </small>        
+               // <small>
+                   // ${statusText}
+               // </small>        
             </td>
 
 
