@@ -150,15 +150,7 @@ function sendPrivateReply(
 
     const payload =
         JSON.stringify({
-
-            recipient: {
-                comment_id:
-                    commentId
-            },
-
-            message: {
-                text
-            }
+            message: text
         });
 
     const options = {
@@ -167,7 +159,7 @@ function sendPrivateReply(
             'graph.facebook.com',
 
         path:
-            `/v20.0/me/messages?access_token=${accessToken}`,
+            `/v20.0/${commentId}/private_replies?access_token=${accessToken}`,
 
         method:
             'POST',
